@@ -1,0 +1,200 @@
+<svg width="1920" height="600" viewBox="0 0 1920 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 背景渐变 -->
+    <linearGradient id="cultureBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fefce8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#fef3c7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fde68a;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 金色渐变 -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 古典玉石渐变 -->
+    <radialGradient id="classicJadeGradient" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#f3f4f6;stop-opacity:0.9" />
+      <stop offset="30%" style="stop-color:#e5e7eb;stop-opacity:0.8" />
+      <stop offset="70%" style="stop-color:#d1d5db;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#9ca3af;stop-opacity:0.6" />
+    </radialGradient>
+    
+    <!-- 温润光泽 -->
+    <radialGradient id="warmShine" cx="30%" cy="20%" r="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+      <stop offset="50%" style="stop-color:#fbbf24;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </radialGradient>
+    
+    <!-- 阴影滤镜 -->
+    <filter id="cultureShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="4" stdDeviation="8" flood-color="#92400e" flood-opacity="0.3"/>
+    </filter>
+    
+    <!-- 传统纹样图案 -->
+    <pattern id="traditionalPattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+      <!-- 回纹 -->
+      <path d="M10,10 L50,10 L50,20 L20,20 L20,40 L50,40 L50,50 L10,50 L10,40 L40,40 L40,20 L10,20 Z" stroke="#d97706" stroke-width="1" fill="none" opacity="0.3"/>
+      <!-- 云纹 -->
+      <path d="M30,5 Q40,15 30,25 Q20,15 30,5" stroke="#f59e0b" stroke-width="1" fill="none" opacity="0.4"/>
+    </pattern>
+    
+    <!-- 书法笔触效果 -->
+    <filter id="brushStroke">
+      <feTurbulence baseFrequency="0.9" numOctaves="4" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2"/>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="1920" height="600" fill="url(#cultureBg)"/>
+  
+  <!-- 传统纹样背景 -->
+  <rect width="1920" height="600" fill="url(#traditionalPattern)" opacity="0.1"/>
+  
+  <!-- 装饰性背景图案 -->
+  <g opacity="0.08">
+    <circle cx="1600" cy="100" r="120" fill="#d97706"/>
+    <circle cx="1750" cy="250" r="90" fill="#f59e0b"/>
+    <circle cx="1580" cy="380" r="70" fill="#fbbf24"/>
+    <circle cx="1680" cy="500" r="50" fill="#fed7aa"/>
+  </g>
+  
+  <!-- 古典玉璧 -->
+  <g transform="translate(1350, 250)">
+    <!-- 外圈 -->
+    <circle cx="0" cy="0" r="140" fill="url(#classicJadeGradient)" filter="url(#cultureShadow)"/>
+    
+    <!-- 内圈（镂空） -->
+    <circle cx="0" cy="0" r="60" fill="url(#cultureBg)" opacity="0.8"/>
+    
+    <!-- 光泽效果 -->
+    <ellipse cx="-30" cy="-30" rx="60" ry="40" fill="url(#warmShine)"/>
+    
+    <!-- 装饰纹理 -->
+    <circle cx="0" cy="0" r="120" fill="none" stroke="#9ca3af" stroke-width="2" opacity="0.6"/>
+    <circle cx="0" cy="0" r="160" fill="none" stroke="#d1d5db" stroke-width="1" opacity="0.4"/>
+    <circle cx="0" cy="0" r="80" fill="none" stroke="#6b7280" stroke-width="1" opacity="0.5"/>
+    
+    <!-- 传统八卦纹 -->
+    <g opacity="0.4">
+      <line x1="0" y1="-100" x2="0" y2="-80" stroke="#6b7280" stroke-width="3"/>
+      <line x1="70" y1="-70" x2="56" y2="-56" stroke="#6b7280" stroke-width="3"/>
+      <line x1="100" y1="0" x2="80" y2="0" stroke="#6b7280" stroke-width="3"/>
+      <line x1="70" y1="70" x2="56" y2="56" stroke="#6b7280" stroke-width="3"/>
+      <line x1="0" y1="100" x2="0" y2="80" stroke="#6b7280" stroke-width="3"/>
+      <line x1="-70" y1="70" x2="-56" y2="56" stroke="#6b7280" stroke-width="3"/>
+      <line x1="-100" y1="0" x2="-80" y2="0" stroke="#6b7280" stroke-width="3"/>
+      <line x1="-70" y1="-70" x2="-56" y2="-56" stroke="#6b7280" stroke-width="3"/>
+    </g>
+  </g>
+  
+  <!-- 古典玉如意 -->
+  <g transform="translate(1150, 420)">
+    <path d="M0,0 Q40,-15 80,0 Q60,30 40,50 Q20,70 0,80 Q-20,70 -40,50 Q-60,30 -80,0 Q-40,-15 0,0" fill="url(#classicJadeGradient)" filter="url(#cultureShadow)"/>
+    <ellipse cx="-15" cy="-5" rx="30" ry="18" fill="url(#warmShine)"/>
+  </g>
+  
+  <!-- 小装饰玉件 -->
+  <g transform="translate(1500, 150)">
+    <ellipse cx="0" cy="0" rx="35" ry="25" fill="url(#classicJadeGradient)" opacity="0.7"/>
+    <ellipse cx="-8" cy="-5" rx="15" ry="10" fill="url(#warmShine)"/>
+  </g>
+  
+  <g transform="translate(1200, 180)">
+    <circle cx="0" cy="0" r="22" fill="url(#classicJadeGradient)" opacity="0.6"/>
+    <circle cx="-6" cy="-6" r="9" fill="url(#warmShine)"/>
+  </g>
+  
+  <!-- 文字区域 -->
+  <g transform="translate(100, 150)">
+    <!-- 主标题 -->
+    <text x="0" y="0" font-family="serif" font-size="72" font-weight="bold" fill="#92400e">
+      玉石文化
+    </text>
+    
+    <!-- 副标题 -->
+    <text x="0" y="80" font-family="serif" font-size="36" fill="#b45309">
+      千年传承 · 君子如玉
+    </text>
+    
+    <!-- 描述文字 -->
+    <text x="0" y="140" font-family="sans-serif" font-size="24" fill="#92400e">
+      承载华夏文明，传递温润品格
+    </text>
+    
+    <!-- 装饰线条 -->
+    <line x1="0" y1="160" x2="520" y2="160" stroke="url(#goldGradient)" stroke-width="4"/>
+    
+    <!-- 文化标签 -->
+    <g transform="translate(0, 200)">
+      <rect x="0" y="0" width="140" height="50" rx="25" fill="#d97706" opacity="0.9"/>
+      <text x="70" y="32" font-family="serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">
+        文化传承
+      </text>
+    </g>
+    
+    <g transform="translate(160, 200)">
+      <rect x="0" y="0" width="140" height="50" rx="25" fill="#f59e0b" opacity="0.9"/>
+      <text x="70" y="32" font-family="serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">
+        君子品格
+      </text>
+    </g>
+    
+    <g transform="translate(320, 200)">
+      <rect x="0" y="0" width="140" height="50" rx="25" fill="#fbbf24" opacity="0.9"/>
+      <text x="70" y="32" font-family="serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">
+        温润如玉
+      </text>
+    </g>
+    
+    <!-- 古典诗句 -->
+    <g transform="translate(0, 300)">
+      <text x="0" y="0" font-family="serif" font-size="28" fill="#92400e" opacity="0.8">
+        "言念君子，温其如玉"
+      </text>
+      <text x="0" y="40" font-family="serif" font-size="20" fill="#b45309" opacity="0.7">
+        —— 《诗经》
+      </text>
+    </g>
+  </g>
+  
+  <!-- 装饰性元素 -->
+  <g opacity="0.3">
+    <!-- 传统祥云纹 -->
+    <path d="M50,100 Q100,80 150,100 Q200,120 250,100 Q300,80 350,100 Q400,120 450,100 Q500,80 550,100" stroke="url(#goldGradient)" stroke-width="3" fill="none"/>
+    <path d="M50,500 Q100,480 150,500 Q200,520 250,500 Q300,480 350,500 Q400,520 450,500 Q500,480 550,500" stroke="url(#goldGradient)" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- 书法装饰 -->
+  <g transform="translate(1600, 450)" opacity="0.15">
+    <text x="0" y="0" font-family="serif" font-size="120" fill="#d97706" filter="url(#brushStroke)">
+      玉
+    </text>
+  </g>
+  
+  <!-- 右上角装饰 -->
+  <g transform="translate(1750, 100)" opacity="0.2">
+    <polygon points="0,0 40,20 20,60 -20,40" fill="#d97706"/>
+    <polygon points="50,30 90,50 70,90 30,70" fill="#f59e0b"/>
+  </g>
+  
+  <!-- 左下角装饰 -->
+  <g transform="translate(120, 520)" opacity="0.25">
+    <circle cx="0" cy="0" r="30" fill="#d97706"/>
+    <circle cx="50" cy="20" r="22" fill="#f59e0b"/>
+    <circle cx="90" cy="45" r="16" fill="#fbbf24"/>
+    <circle cx="120" cy="70" r="12" fill="#fed7aa"/>
+  </g>
+  
+  <!-- 传统印章装饰 -->
+  <g transform="translate(1700, 350)" opacity="0.2">
+    <rect x="0" y="0" width="60" height="60" rx="5" fill="#92400e"/>
+    <text x="30" y="40" font-family="serif" font-size="24" fill="#fef3c7" text-anchor="middle">
+      玉
+    </text>
+  </g>
+</svg>

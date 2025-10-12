@@ -1,0 +1,72 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="jadeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f8f0;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#f0f0e8;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#e8e8d8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d8d8c8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shadowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c8c8b8;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#a8a898;stop-opacity:0.6" />
+    </linearGradient>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="400" fill="#fafafa"/>
+  
+  <!-- Shadow -->
+  <ellipse cx="200" cy="350" rx="80" ry="15" fill="url(#shadowGradient)" opacity="0.3"/>
+  
+  <!-- Main pendant body -->
+  <path d="M200 80 C240 80 280 120 280 160 C280 200 260 240 240 280 C220 320 200 340 200 340 C200 340 180 320 160 280 C140 240 120 200 120 160 C120 120 160 80 200 80 Z" 
+        fill="url(#jadeGradient)" 
+        stroke="#d0d0c0" 
+        stroke-width="1" 
+        filter="url(#softGlow)"/>
+  
+  <!-- Guanyin face outline -->
+  <ellipse cx="200" cy="140" rx="25" ry="30" fill="#f5f5ed" stroke="#e0e0d0" stroke-width="0.5"/>
+  
+  <!-- Eyes -->
+  <circle cx="192" cy="135" r="2" fill="#888"/>
+  <circle cx="208" cy="135" r="2" fill="#888"/>
+  
+  <!-- Nose -->
+  <line x1="200" y1="140" x2="200" y2="145" stroke="#ccc" stroke-width="0.5"/>
+  
+  <!-- Mouth -->
+  <path d="M195 150 Q200 153 205 150" stroke="#ccc" stroke-width="0.5" fill="none"/>
+  
+  <!-- Hair/Crown -->
+  <path d="M175 120 Q200 110 225 120 Q220 125 200 125 Q180 125 175 120" fill="#e8e8d8" stroke="#d0d0c0" stroke-width="0.5"/>
+  
+  <!-- Robes -->
+  <path d="M180 170 Q200 175 220 170 Q225 200 220 230 Q200 240 180 230 Q175 200 180 170" 
+        fill="#f0f0e8" 
+        stroke="#d8d8c8" 
+        stroke-width="0.5"/>
+  
+  <!-- Hands in prayer position -->
+  <ellipse cx="200" cy="200" rx="8" ry="12" fill="#f5f5ed" stroke="#e0e0d0" stroke-width="0.5"/>
+  
+  <!-- Decorative patterns -->
+  <circle cx="185" cy="190" r="3" fill="none" stroke="#e0e0d0" stroke-width="0.5" opacity="0.7"/>
+  <circle cx="215" cy="190" r="3" fill="none" stroke="#e0e0d0" stroke-width="0.5" opacity="0.7"/>
+  
+  <!-- Hanging loop -->
+  <ellipse cx="200" cy="70" rx="8" ry="4" fill="none" stroke="#d0d0c0" stroke-width="2"/>
+  <rect x="196" y="65" width="8" height="10" fill="url(#jadeGradient)" stroke="#d0d0c0" stroke-width="1"/>
+  
+  <!-- Subtle texture lines -->
+  <path d="M140 180 Q200 185 260 180" stroke="#e8e8d8" stroke-width="0.3" opacity="0.5" fill="none"/>
+  <path d="M150 220 Q200 225 250 220" stroke="#e8e8d8" stroke-width="0.3" opacity="0.5" fill="none"/>
+  <path d="M160 260 Q200 265 240 260" stroke="#e8e8d8" stroke-width="0.3" opacity="0.5" fill="none"/>
+</svg>
