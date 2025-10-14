@@ -2,12 +2,15 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react'
 import ProductCard from '@/components/ui/ProductCard'
-import { mockProducts, mockCategories } from '@/data/mockData'
+import { ProductService, CategoryService } from '@/services/productService'
 import { useStore } from '@/store/useStore'
-import type { Product } from '@/types'
+import type { Product, Category } from '@/types'
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'
 type ViewMode = 'grid' | 'list'
+
+const productService = new ProductService()
+const categoryService = new CategoryService()
 
 const Products: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -20,9 +23,50 @@ const Products: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
   
+  // Data states
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
   const { addToCart, toggleFavorite, isFavorite } = useStore()
 
-  // 从URL参数中获取分类ID并设置初始状态
+  // Load data from database
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const [productsResult, categoriesResult] = await Promise.all([
+          productService.getProducts({}),
+          categoryService.getCategories()
+        ])
+
+        if (productsResult.success && productsResult.data) {
+          setProducts(productsResult.data)
+        } else {
+          console.error('Failed to load products:', productsResult.error)
+          setError(productsResult.error || 'Failed to load products')
+        }
+
+        if (categoriesResult.success && categoriesResult.data) {
+          setCategories(categoriesResult.data)
+        } else {
+          console.error('Failed to load categories:', categoriesResult.error)
+        }
+      } catch (err) {
+        console.error('Error loading products data:', err)
+        setError('Failed to load page data. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
+
+  // Get category ID from URL parameters and set initial state
   useEffect(() => {
     const categoryParam = searchParams.get('category')
     if (categoryParam) {
@@ -30,9 +74,9 @@ const Products: React.FC = () => {
     }
   }, [searchParams])
 
-  // 筛选和排序商品
+  // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = mockProducts.filter(product => {
+    let filtered = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            product.description.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesCategory = selectedCategory === 'all' || product.category_id === selectedCategory
@@ -41,7 +85,7 @@ const Products: React.FC = () => {
       return matchesSearch && matchesCategory && matchesPrice && product.is_active
     })
 
-    // 排序
+    // Sort products
     switch (sortBy) {
       case 'price-asc':
         filtered.sort((a, b) => a.price - b.price)
@@ -56,14 +100,14 @@ const Products: React.FC = () => {
         filtered.sort((a, b) => b.name.localeCompare(a.name))
         break
       default:
-        // 保持默认顺序
+        // Keep default order
         break
     }
 
     return filtered
-  }, [searchTerm, selectedCategory, priceRange, sortBy])
+  }, [products, searchTerm, selectedCategory, priceRange, sortBy])
 
-  // 分页
+  // Pagination
   const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage)
   const paginatedProducts = filteredAndSortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
@@ -83,26 +127,53 @@ const Products: React.FC = () => {
     setCurrentPage(1)
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 页面标题 */}
+      {/* Page title */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">玉石精品</h1>
-          <p className="text-gray-600">发现千年传承的玉石之美</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Antique Collection</h1>
+          <p className="text-gray-600">Discover the beauty of thousand-year heritage antiques</p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* 侧边栏筛选 - 桌面端 */}
+          {/* Sidebar filter - Desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">筛选条件</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Options</h3>
               
-              {/* 分类筛选 */}
+              {/* Category filter */}
               <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">商品分类</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Product Category</h4>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input
@@ -116,9 +187,9 @@ const Products: React.FC = () => {
                       }}
                       className="text-jade-600 focus:ring-jade-500"
                     />
-                    <span className="ml-2 text-sm text-gray-600">全部商品</span>
+                    <span className="ml-2 text-sm text-gray-600">All Products</span>
                   </label>
-                  {mockCategories.map(category => (
+                  {categories.map(category => (
                     <label key={category.id} className="flex items-center">
                       <input
                         type="radio"
@@ -137,17 +208,17 @@ const Products: React.FC = () => {
                 </div>
               </div>
 
-              {/* 价格筛选 */}
+              {/* Price filter */}
               <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">价格区间</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Price Range</h4>
                 <div className="space-y-2">
                   {[
-                    { label: '全部价格', min: 0, max: 20000 },
-                    { label: '￥500以下', min: 0, max: 500 },
-                    { label: '￥500-2000', min: 500, max: 2000 },
-                    { label: '￥2000-5000', min: 2000, max: 5000 },
-                    { label: '￥5000-10000', min: 5000, max: 10000 },
-                    { label: '￥10000以上', min: 10000, max: 20000 },
+                    { label: 'All Prices', min: 0, max: 20000 },
+                    { label: 'Under $500', min: 0, max: 500 },
+                    { label: '$500-2000', min: 500, max: 2000 },
+                    { label: '$2000-5000', min: 2000, max: 5000 },
+                    { label: '$5000-10000', min: 5000, max: 10000 },
+                    { label: 'Over $10000', min: 10000, max: 20000 },
                   ].map(range => (
                     <label key={range.label} className="flex items-center">
                       <input
@@ -163,27 +234,27 @@ const Products: React.FC = () => {
                 </div>
               </div>
 
-              {/* 重置筛选 */}
+              {/* Reset filters */}
               <button
                 onClick={resetFilters}
                 className="w-full px-4 py-2 text-sm text-jade-600 border border-jade-600 rounded-md hover:bg-jade-50 transition-colors"
               >
-                重置筛选
+                Reset Filters
               </button>
             </div>
           </div>
 
-          {/* 主内容区域 */}
+          {/* Main content area */}
           <div className="flex-1">
-            {/* 搜索和工具栏 */}
+            {/* Search and toolbar */}
             <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                {/* 搜索框 */}
+                {/* Search box */}
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
-                    placeholder="搜索商品..."
+                    placeholder="Search products..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value)
@@ -194,32 +265,32 @@ const Products: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  {/* 移动端筛选按钮 */}
+                  {/* Mobile filter button */}
                   <button
                     onClick={() => setShowFilters(!showFilters)}
                     className="lg:hidden flex items-center gap-2 px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     <Filter className="w-4 h-4" />
-                    筛选
+                    Filter
                   </button>
 
-                  {/* 排序 */}
+                  {/* Sort */}
                   <div className="relative">
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as SortOption)}
                       className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 text-sm focus:ring-2 focus:ring-jade-500 focus:border-transparent"
                     >
-                      <option value="default">默认排序</option>
-                      <option value="price-asc">价格从低到高</option>
-                      <option value="price-desc">价格从高到低</option>
-                      <option value="name-asc">名称A-Z</option>
-                      <option value="name-desc">名称Z-A</option>
+                      <option value="default">Default Sort</option>
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                      <option value="name-asc">Name: A-Z</option>
+                      <option value="name-desc">Name: Z-A</option>
                     </select>
                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                   </div>
 
-                  {/* 视图切换 */}
+                  {/* View toggle */}
                   <div className="flex border border-gray-300 rounded-md overflow-hidden">
                     <button
                       onClick={() => setViewMode('grid')}
@@ -238,13 +309,13 @@ const Products: React.FC = () => {
               </div>
             </div>
 
-            {/* 移动端筛选面板 */}
+            {/* Mobile filter panel */}
             {showFilters && (
               <div className="lg:hidden bg-white rounded-lg shadow-sm p-4 mb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* 分类筛选 */}
+                  {/* Category filter */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">商品分类</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Product Category</h4>
                     <select
                       value={selectedCategory}
                       onChange={(e) => {
@@ -253,16 +324,16 @@ const Products: React.FC = () => {
                       }}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-jade-500 focus:border-transparent"
                     >
-                      <option value="all">全部商品</option>
+                      <option value="all">All Products</option>
                       {mockCategories.map(category => (
                         <option key={category.id} value={category.id}>{category.name}</option>
                       ))}
                     </select>
                   </div>
 
-                  {/* 价格筛选 */}
+                  {/* Price filter */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">价格区间</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Price Range</h4>
                     <select
                       value={`${priceRange[0]}-${priceRange[1]}`}
                       onChange={(e) => {
@@ -271,26 +342,26 @@ const Products: React.FC = () => {
                       }}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-jade-500 focus:border-transparent"
                     >
-                      <option value="0-20000">全部价格</option>
-                      <option value="0-500">￥500以下</option>
-                      <option value="500-2000">￥500-2000</option>
-                      <option value="2000-5000">￥2000-5000</option>
-                      <option value="5000-10000">￥5000-10000</option>
-                      <option value="10000-20000">￥10000以上</option>
+                      <option value="0-20000">All Prices</option>
+                      <option value="0-500">Under $500</option>
+                      <option value="500-2000">$500-2000</option>
+                      <option value="2000-5000">$2000-5000</option>
+                      <option value="5000-10000">$5000-10000</option>
+                      <option value="10000-20000">Over $10000</option>
                     </select>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 商品结果统计 */}
+            {/* Product results statistics */}
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-gray-600">
-                共找到 <span className="font-medium text-gray-900">{filteredAndSortedProducts.length}</span> 件商品
+                Found <span className="font-medium text-gray-900">{filteredAndSortedProducts.length}</span> products
               </p>
             </div>
 
-            {/* 商品网格 */}
+            {/* Product grid */}
             {paginatedProducts.length > 0 ? (
               <div className={`grid gap-6 mb-8 ${
                 viewMode === 'grid' 
@@ -313,18 +384,18 @@ const Products: React.FC = () => {
                 <div className="text-gray-400 mb-4">
                   <Search className="w-12 h-12 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">未找到相关商品</h3>
-                <p className="text-gray-600 mb-4">请尝试调整筛选条件或搜索关键词</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
+                <p className="text-gray-600 mb-4">Please try adjusting your filters or search terms</p>
                 <button
                   onClick={resetFilters}
                   className="px-4 py-2 bg-jade-600 text-white rounded-md hover:bg-jade-700 transition-colors"
                 >
-                  重置筛选
+                  Reset Filters
                 </button>
               </div>
             )}
 
-            {/* 分页 */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2">
                 <button
@@ -332,7 +403,7 @@ const Products: React.FC = () => {
                   disabled={currentPage === 1}
                   className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  上一页
+                  Previous
                 </button>
                 
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -354,7 +425,7 @@ const Products: React.FC = () => {
                   disabled={currentPage === totalPages}
                   className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  下一页
+                  Next
                 </button>
               </div>
             )}

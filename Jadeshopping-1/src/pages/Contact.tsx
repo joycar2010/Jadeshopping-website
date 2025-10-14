@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
+  MapPin, 
   Phone, 
   Mail, 
-  MapPin, 
   Clock, 
   MessageCircle, 
   Send,
   CheckCircle,
-  Copy,
-  ExternalLink,
-  Headphones,
+  AlertCircle,
+  User,
   MessageSquare,
+  HelpCircle,
   Smartphone
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ContentService, type ContentPage, type ContentSection } from '@/services/contentService';
 
 interface ContactForm {
   name: string;
@@ -26,6 +28,9 @@ interface ContactForm {
 }
 
 const Contact: React.FC = () => {
+  const [contentPage, setContentPage] = useState<(ContentPage & { sections: ContentSection[] }) | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<ContactForm>({
     name: '',
     email: '',
@@ -37,10 +42,42 @@ const Contact: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<ContactForm>>({});
 
+  const contentService = new ContentService();
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const result = await contentService.getPageBySlug('contact');
+        
+        if (result.success && result.data) {
+          setContentPage(result.data);
+        } else {
+          // 使用默认内容作为fallback
+          const defaultContent = contentService.getDefaultContent('contact');
+          setContentPage(defaultContent);
+          console.warn('Using default content for contact page:', result.error);
+        }
+      } catch (err) {
+        console.error('Failed to fetch contact page content:', err);
+        setError('Failed to load page content');
+        // 使用默认内容作为fallback
+        const defaultContent = contentService.getDefaultContent('contact');
+        setContentPage(defaultContent);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
-    // 清除对应字段的错误
+    // Clear corresponding field error
     if (errors[name as keyof ContactForm]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -50,29 +87,29 @@ const Contact: React.FC = () => {
     const newErrors: Partial<ContactForm> = {};
 
     if (!form.name.trim()) {
-      newErrors.name = '请输入您的姓名';
+      newErrors.name = 'Please enter your name';
     }
 
     if (!form.email.trim()) {
-      newErrors.email = '请输入邮箱地址';
+      newErrors.email = 'Please enter your email address';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = '请输入有效的邮箱地址';
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!form.phone.trim()) {
-      newErrors.phone = '请输入联系电话';
-    } else if (!/^1[3-9]\d{9}$/.test(form.phone.replace(/\D/g, ''))) {
-      newErrors.phone = '请输入有效的手机号码';
+      newErrors.phone = 'Please enter your phone number';
+    } else if (!/^[\d\s\-\+\(\)]+$/.test(form.phone)) {
+      newErrors.phone = 'Please enter a valid phone number';
     }
 
     if (!form.subject.trim()) {
-      newErrors.subject = '请选择咨询主题';
+      newErrors.subject = 'Please select an inquiry topic';
     }
 
     if (!form.message.trim()) {
-      newErrors.message = '请输入留言内容';
+      newErrors.message = 'Please enter your message';
     } else if (form.message.trim().length < 10) {
-      newErrors.message = '留言内容至少需要10个字符';
+      newErrors.message = 'Message must be at least 10 characters long';
     }
 
     setErrors(newErrors);
@@ -88,19 +125,26 @@ const Contact: React.FC = () => {
 
     setIsSubmitting(true);
     
-    // 模拟提交过程
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setIsSubmitted(true);
-      setForm({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
-      });
+      // 使用ContentService提交联系表单
+      const result = await contentService.submitContactForm(form);
+      
+      if (result.success) {
+        setIsSubmitted(true);
+        setForm({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+        toast.success('Message sent successfully! We will contact you soon.');
+      } else {
+        toast.error(result.error || 'Failed to send message. Please try again.');
+      }
     } catch (error) {
-      console.error('提交失败:', error);
+      console.error('Submission failed:', error);
+      toast.error('Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -108,101 +152,171 @@ const Contact: React.FC = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  };
+
+  // 渲染内容区块
+  const renderSection = (section: ContentSection) => {
+    switch (section.section_type) {
+      case 'hero':
+        return (
+          <div key={section.id} className="relative bg-gradient-to-r from-jade-600 to-jade-800 text-white py-20">
+            <div className="absolute inset-0 bg-black opacity-20"></div>
+            <div className="relative container mx-auto px-4 text-center">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">{section.title}</h1>
+              <p className="text-xl md:text-2xl opacity-90">{section.content}</p>
+            </div>
+          </div>
+        );
+      
+      case 'text':
+        return (
+          <section key={section.id} className="mb-12">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{section.title}</h2>
+              <div className="text-gray-600 max-w-2xl mx-auto">
+                <div dangerouslySetInnerHTML={{ __html: section.content || '' }} />
+              </div>
+            </div>
+          </section>
+        );
+      
+      case 'contact_info':
+        return (
+          <section key={section.id} className="mb-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{section.title || 'Contact Information'}</h2>
+              {section.content && <p className="text-gray-600 max-w-2xl mx-auto">{section.content}</p>}
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {companyInfo.map((info, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+                  <div className="flex justify-center mb-4">
+                    {info.icon}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{info.title}</h3>
+                  <p className="text-gray-600 text-sm">{info.content}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      
+      default:
+        return null;
+    }
   };
 
   const contactMethods = [
     {
       icon: <Phone className="w-6 h-6 text-jade-600" />,
-      title: '客服热线',
+      title: 'Customer Service Hotline',
       content: '400-888-9999',
-      description: '7×24小时专业客服',
+      description: '24/7 professional customer service',
       action: () => window.open('tel:400-888-9999')
     },
     {
       icon: <Mail className="w-6 h-6 text-jade-600" />,
-      title: '邮箱咨询',
-      content: 'service@yushixuan.com',
-      description: '工作日24小时内回复',
-      action: () => window.open('mailto:service@yushixuan.com')
+      title: 'Email Consultation',
+      content: 'service@jadeshopping.com',
+      description: 'Reply within 24 hours on business days',
+      action: () => window.open('mailto:service@jadeshopping.com')
     },
     {
       icon: <MessageSquare className="w-6 h-6 text-jade-600" />,
-      title: '在线客服',
-      content: '立即咨询',
-      description: '实时在线解答疑问',
-      action: () => alert('在线客服功能开发中...')
+      title: 'Live Chat',
+      content: 'Chat Now',
+      description: 'Real-time online support',
+      action: () => toast.info('Live chat feature coming soon...')
     },
     {
       icon: <Smartphone className="w-6 h-6 text-jade-600" />,
-      title: 'Facebook客服',
-      content: '@YuShiXuan',
-      description: '关注我们的Facebook页面',
-      action: () => window.open('https://facebook.com/YuShiXuan')
+      title: 'Social Media',
+      content: '@JadeShopping',
+      description: 'Follow our social media',
+      action: () => toast.info('Social media links coming soon...')
     }
   ];
 
   const companyInfo = [
     {
       icon: <MapPin className="w-5 h-5 text-jade-600" />,
-      title: '公司地址',
-      content: '北京市朝阳区建国门外大街1号国贸大厦A座2801室'
+      title: 'Company Address',
+      content: '1 Jianguomenwai Avenue, Chaoyang District, Beijing, CWTC Tower A, Suite 2801'
     },
     {
       icon: <Phone className="w-5 h-5 text-jade-600" />,
-      title: '联系电话',
+      title: 'Contact Phone',
       content: '400-888-9999 / 010-85698888'
     },
     {
       icon: <Mail className="w-5 h-5 text-jade-600" />,
-      title: '邮箱地址',
-      content: 'service@yushixuan.com'
+      title: 'Email Address',
+      content: 'service@jadeshopping.com'
     },
     {
       icon: <Clock className="w-5 h-5 text-jade-600" />,
-      title: '营业时间',
-      content: '周一至周日 9:00-21:00'
+      title: 'Business Hours',
+      content: 'Monday to Sunday 9:00 AM - 9:00 PM'
     }
   ];
 
   const faqItems = [
-    { question: '如何辨别玉石真伪？', link: '/help/authentication' },
-    { question: '退换货政策说明', link: '/help/return-policy' },
-    { question: '配送时间和费用', link: '/help/shipping' },
-    { question: '售后服务保障', link: '/help/warranty' },
-    { question: '会员权益介绍', link: '/help/membership' },
-
+    { question: 'How to authenticate antiques?', link: '/help/authentication' },
+    { question: 'Return and exchange policy', link: '/help/return-policy' },
+    { question: 'Shipping time and costs', link: '/help/shipping' },
+    { question: 'After-sales service guarantee', link: '/help/warranty' },
+    { question: 'Membership benefits', link: '/help/membership' },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-jade-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !contentPage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-jade-600 text-white rounded-lg hover:bg-jade-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isSubmitted) {
     return (
       <>
         <Helmet>
-          <title>提交成功 - 联系我们 - 玉石轩</title>
+          <title>Submission Successful - Contact Us - JadeShopping</title>
         </Helmet>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
           <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">提交成功！</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Submission Successful!</h2>
             <p className="text-gray-600 mb-6">
-              感谢您的留言，我们已收到您的咨询。我们的客服团队将在24小时内与您联系。
+              Thank you for contacting us! We have received your message and will respond within 24 hours.
             </p>
-            <div className="space-y-3">
-              <Button 
-                onClick={() => setIsSubmitted(false)}
-                className="w-full"
-              >
-                继续咨询
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => window.location.href = '/'}
-                className="w-full"
-              >
-                返回首页
-              </Button>
-            </div>
+            <Button 
+              onClick={() => setIsSubmitted(false)}
+              className="w-full"
+            >
+              Send Another Message
+            </Button>
           </div>
         </div>
       </>
@@ -212,34 +326,53 @@ const Contact: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>联系我们 - 玉石轩</title>
-        <meta name="description" content="联系玉石轩，获得专业的玉石咨询服务。提供多种联系方式，专业客服团队为您解答疑问。" />
+        <title>{contentPage?.meta_title || 'Contact Us - JadeShopping'}</title>
+        <meta name="description" content={contentPage?.meta_description || "Contact JadeShopping for professional antique consultation, customer service, and support. Multiple contact methods available for your convenience."} />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-12">
-          {/* 页面标题 */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">联系我们</h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              我们致力于为您提供最优质的玉石产品和服务，欢迎随时与我们联系
-            </p>
-          </div>
+        {/* 渲染动态内容区块 */}
+        {contentPage?.sections?.map(section => renderSection(section))}
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* 联系表单 */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center mb-6">
-                  <MessageCircle className="w-6 h-6 text-jade-600 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900">在线咨询</h2>
+        <div className="container mx-auto px-4 py-16">
+          {/* Contact Methods */}
+          <section className="mb-16">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Contact Methods</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">Choose the most convenient way to contact us</p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {contactMethods.map((method, index) => (
+                <div 
+                  key={index} 
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={method.action}
+                >
+                  <div className="flex justify-center mb-4">
+                    {method.icon}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{method.title}</h3>
+                  <p className="text-jade-600 font-medium mb-2">{method.content}</p>
+                  <p className="text-gray-500 text-sm">{method.description}</p>
                 </div>
-                
+              ))}
+            </div>
+          </section>
+
+          {/* Contact Form */}
+          <section className="mb-16">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Send Us a Message</h2>
+                <p className="text-gray-600">Fill out the form below and we'll get back to you as soon as possible</p>
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                        姓名 <span className="text-red-500">*</span>
+                        Full Name *
                       </label>
                       <Input
                         id="name"
@@ -247,15 +380,33 @@ const Contact: React.FC = () => {
                         type="text"
                         value={form.name}
                         onChange={handleInputChange}
-                        placeholder="请输入您的姓名"
+                        placeholder="Please enter your full name"
                         className={errors.name ? 'border-red-300' : ''}
                       />
                       {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                     </div>
                     
                     <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address *
+                      </label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={form.email}
+                        onChange={handleInputChange}
+                        placeholder="Please enter your email address"
+                        className={errors.email ? 'border-red-300' : ''}
+                      />
+                      {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                        联系电话 <span className="text-red-500">*</span>
+                        Phone Number *
                       </label>
                       <Input
                         id="phone"
@@ -263,58 +414,38 @@ const Contact: React.FC = () => {
                         type="tel"
                         value={form.phone}
                         onChange={handleInputChange}
-                        placeholder="请输入您的手机号码"
+                        placeholder="Please enter your phone number"
                         className={errors.phone ? 'border-red-300' : ''}
                       />
                       {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
                     </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      邮箱地址 <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={form.email}
-                      onChange={handleInputChange}
-                      placeholder="请输入您的邮箱地址"
-                      className={errors.email ? 'border-red-300' : ''}
-                    />
-                    {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-                  </div>
-
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                      咨询主题 <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="subject"
-                      name="subject"
-                      value={form.subject}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-jade-500 focus:border-transparent ${
-                        errors.subject ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">请选择咨询主题</option>
-                      <option value="product">产品咨询</option>
-                      <option value="order">订单问题</option>
-                      <option value="shipping">配送问题</option>
-                      <option value="return">退换货</option>
-                      <option value="authentication">真伪鉴定</option>
-                      <option value="maintenance">保养维护</option>
-                      <option value="cooperation">商务合作</option>
-                      <option value="other">其他问题</option>
-                    </select>
-                    {errors.subject && <p className="mt-1 text-sm text-red-600">{errors.subject}</p>}
+                    
+                    <div>
+                      <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                        Inquiry Topic *
+                      </label>
+                      <select
+                        id="subject"
+                        name="subject"
+                        value={form.subject}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-jade-500 focus:border-jade-500 ${errors.subject ? 'border-red-300' : ''}`}
+                      >
+                        <option value="">Please select an inquiry topic</option>
+                        <option value="product">Product Consultation</option>
+                        <option value="order">Order Issues</option>
+                        <option value="return">Returns & Exchanges</option>
+                        <option value="authentication">Authentication Services</option>
+                        <option value="partnership">Business Cooperation</option>
+                        <option value="other">Other</option>
+                      </select>
+                      {errors.subject && <p className="mt-1 text-sm text-red-600">{errors.subject}</p>}
+                    </div>
                   </div>
 
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                      留言内容 <span className="text-red-500">*</span>
+                      Message Content *
                     </label>
                     <textarea
                       id="message"
@@ -322,162 +453,54 @@ const Contact: React.FC = () => {
                       rows={6}
                       value={form.message}
                       onChange={handleInputChange}
-                      placeholder="请详细描述您的问题或需求，我们将为您提供专业的解答..."
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-jade-500 focus:border-transparent resize-none ${
-                        errors.message ? 'border-red-300' : 'border-gray-300'
-                      }`}
+                      placeholder="Please describe your inquiry in detail..."
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-jade-500 focus:border-jade-500 resize-none ${errors.message ? 'border-red-300' : ''}`}
                     />
                     {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message}</p>}
-                    <p className="mt-1 text-sm text-gray-500">
-                      {form.message.length}/500 字符
-                    </p>
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full flex items-center justify-center"
+                    className="w-full"
                   >
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        提交中...
+                        Sending...
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4 mr-2" />
-                        提交咨询
+                        Send Message
                       </>
                     )}
                   </Button>
                 </form>
               </div>
             </div>
+          </section>
 
-            {/* 联系信息侧边栏 */}
-            <div className="space-y-6">
-              {/* 快速联系方式 */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">快速联系</h3>
-                <div className="space-y-4">
-                  {contactMethods.map((method, index) => (
-                    <div
-                      key={index}
-                      onClick={method.action}
-                      className="flex items-start p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                    >
-                      <div className="flex-shrink-0 mr-3">
-                        {method.icon}
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{method.title}</h4>
-                        <p className="text-jade-600 font-medium">{method.content}</p>
-                        <p className="text-sm text-gray-500">{method.description}</p>
-                      </div>
-                      <ExternalLink className="w-4 h-4 text-gray-400" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 公司信息 */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">公司信息</h3>
-                <div className="space-y-4">
-                  {companyInfo.map((info, index) => (
-                    <div key={index} className="flex items-start">
-                      <div className="flex-shrink-0 mr-3 mt-0.5">
-                        {info.icon}
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900 text-sm">{info.title}</h4>
-                        <p className="text-gray-600 text-sm mt-1">{info.content}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 常见问题 */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">常见问题</h3>
-                <div className="space-y-2">
-                  {faqItems.map((item, index) => (
-                    <a
-                      key={index}
-                      href={item.link}
-                      className="block p-2 text-sm text-gray-600 hover:text-jade-600 hover:bg-gray-50 rounded transition-colors"
-                    >
-                      {item.question}
-                    </a>
-                  ))}
-                </div>
-              </div>
+          {/* FAQ Section */}
+          <section className="mb-16">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">Quick answers to common questions</p>
             </div>
-          </div>
-
-          {/* 地图和地址信息 */}
-          <div className="mt-12">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-8">
-                <div className="flex items-center mb-6">
-                  <MapPin className="w-6 h-6 text-jade-600 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900">门店位置</h2>
+            <div className="max-w-2xl mx-auto">
+              {faqItems.map((item, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 hover:shadow-md transition-shadow">
+                  <a 
+                    href={item.link} 
+                    className="flex items-center justify-between text-gray-900 hover:text-jade-600 transition-colors"
+                  >
+                    <span className="font-medium">{item.question}</span>
+                    <HelpCircle className="w-5 h-5 text-gray-400" />
+                  </a>
                 </div>
-                
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">北京总店</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-start">
-                        <MapPin className="w-5 h-5 text-jade-600 mr-3 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-gray-900">地址</p>
-                          <p className="text-gray-600">北京市朝阳区建国门外大街1号国贸大厦A座2801室</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start">
-                        <Phone className="w-5 h-5 text-jade-600 mr-3 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-gray-900">电话</p>
-                          <p className="text-gray-600">010-85698888</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start">
-                        <Clock className="w-5 h-5 text-jade-600 mr-3 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-gray-900">营业时间</p>
-                          <p className="text-gray-600">周一至周日 9:00-21:00</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6">
-                      <h4 className="font-medium text-gray-900 mb-2">交通指南</h4>
-                      <ul className="text-sm text-gray-600 space-y-1">
-                        <li>• 地铁：1号线、10号线国贸站A口出</li>
-                        <li>• 公交：1路、4路、37路国贸站下车</li>
-                        <li>• 自驾：国贸大厦地下停车场</li>
-                      </ul>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    {/* 地图占位符 */}
-                    <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500">地图加载中...</p>
-                        <p className="text-sm text-gray-400 mt-1">
-                          实际项目中可集成百度地图或高德地图
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </>

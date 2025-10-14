@@ -34,7 +34,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    // 只触发动画，动画系统会统一处理添加到购物车的逻辑
+    // Only trigger animation, animation system will handle adding to cart logic uniformly
     triggerAnimation(product, e);
   };
 
@@ -52,14 +52,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleImageError = () => {
     console.error('ProductCard - Image failed to load for product:', product.name, 'src:', product.images[0]);
+    console.error('ProductCard - Attempting to load fallback image');
     setImageLoading(false);
     setImageError(true);
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('zh-CN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'CNY',
+      currency: 'USD',
     }).format(price);
   };
 
@@ -107,11 +108,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   onError={handleImageError}
                 />
                 
-                {/* 库存状态标签 */}
+                {/* Stock status label */}
                 {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
                   <div className="absolute top-1 left-1">
                     <span className="bg-orange-500 text-white text-xs px-1 py-0.5 rounded">
-                      仅剩 {product.stock_quantity} 件
+                      Only {product.stock_quantity} left
                     </span>
                   </div>
                 )}
@@ -119,13 +120,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 {product.stock_quantity === 0 && (
                   <div className="absolute top-1 left-1">
                     <span className="bg-red-500 text-white text-xs px-1 py-0.5 rounded">
-                      售罄
+                      Sold Out
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* 内容区域 */}
+              {/* Content area */}
               <div className="flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="font-semibold text-lg text-gray-900 mb-2 group-hover:text-jade-600 transition-colors">
@@ -138,7 +139,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   
                   {product.specifications?.material && (
                     <p className="text-sm text-gray-500 mb-2">
-                      材质：{product.specifications.material}
+                      Material: {product.specifications.material}
                     </p>
                   )}
                 </div>
@@ -171,7 +172,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         onClick={handleAddToCart}
                       >
                         <ShoppingCart className="h-4 w-4 mr-1" />
-                        加入购物车
+                        Add to Cart
                       </Button>
                     )}
                   </div>
@@ -181,7 +182,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </Link>
         </Card>
         
-        {/* 添加到购物车动画 */}
+        {/* Add to cart animation */}
         {animationData && (
           <AddToCartAnimation
             product={animationData.product}
@@ -199,22 +200,22 @@ const ProductCard: React.FC<ProductCardProps> = ({
       <Card className={cn('product-card group', className)}>
         <Link to={`/products/${product.id}`} className="block">
           <div className="relative overflow-hidden rounded-t-lg">
-            {/* 加载状态指示器 */}
+            {/* Loading indicator */}
             {imageLoading && (
               <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
                 <div className="flex flex-col items-center space-y-2">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-jade-600"></div>
-                  <span className="text-sm text-gray-500">加载中...</span>
+                  <span className="text-sm text-gray-500">Loading...</span>
                 </div>
               </div>
             )}
             
-            {/* 图片错误状态 */}
+            {/* Image error state */}
             {imageError && !imageLoading && (
               <div className="absolute inset-0 bg-gray-50 flex items-center justify-center">
                 <div className="flex flex-col items-center space-y-2 text-gray-400">
                   <ImageIcon className="h-12 w-12" />
-                  <span className="text-sm">图片加载失败</span>
+                  <span className="text-sm">Image failed to load</span>
                 </div>
               </div>
             )}
@@ -231,7 +232,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               onError={handleImageError}
             />
             
-            {/* 悬浮操作按钮 */}
+            {/* Hover action buttons */}
             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-2">
               <Button
                 variant="secondary"
@@ -266,11 +267,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
               )}
             </div>
 
-            {/* 库存状态标签 */}
+            {/* Stock status label */}
             {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
               <div className="absolute top-2 left-2">
                 <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded">
-                  仅剩 {product.stock_quantity} 件
+                  Only {product.stock_quantity} left
                 </span>
               </div>
             )}
@@ -278,7 +279,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {product.stock_quantity === 0 && (
               <div className="absolute top-2 left-2">
                 <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">
-                  售罄
+                  Sold Out
                 </span>
               </div>
             )}
@@ -312,7 +313,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   onClick={handleAddToCart}
                   className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 >
-                  加入购物车
+                  Add to Cart
                 </Button>
               )}
             </div>
@@ -320,7 +321,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </Link>
       </Card>
       
-      {/* 添加到购物车动画 */}
+      {/* Add to cart animation */}
       {animationData && (
         <AddToCartAnimation
           isAnimating={true}

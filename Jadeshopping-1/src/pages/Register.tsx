@@ -19,14 +19,14 @@ const Register: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // 如果已登录，重定向到首页
+  // If already logged in, redirect to homepage
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
-  // 清除错误信息
+  // Clear error messages
   useEffect(() => {
     return () => {
       clearAuthError();
@@ -37,39 +37,39 @@ const Register: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.full_name) {
-      newErrors.full_name = '请输入姓名';
+      newErrors.full_name = 'Please enter your full name';
     } else if (formData.full_name.length < 2) {
-      newErrors.full_name = '姓名至少2个字符';
+      newErrors.full_name = 'Full name must be at least 2 characters';
     }
 
     if (!formData.email) {
-      newErrors.email = '请输入邮箱地址';
+      newErrors.email = 'Please enter your email address';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = '请输入有效的邮箱地址';
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (formData.username && formData.username.length < 3) {
-      newErrors.username = '用户名至少3个字符';
+      newErrors.username = 'Username must be at least 3 characters';
     }
 
     if (formData.phone && !/^1[3-9]\d{9}$/.test(formData.phone)) {
-      newErrors.phone = '请输入有效的手机号码';
+      newErrors.phone = 'Please enter a valid phone number';
     }
 
     if (!formData.password) {
-      newErrors.password = '请输入密码';
+      newErrors.password = 'Please enter your password';
     } else if (formData.password.length < 6) {
-      newErrors.password = '密码长度至少6位';
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = '请确认密码';
+      newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '两次输入的密码不一致';
+      newErrors.confirmPassword = 'Passwords do not match';
     }
 
     if (!formData.agree_terms) {
-      newErrors.agree_terms = '请同意用户协议和隐私政策';
+      newErrors.agree_terms = 'Please agree to the terms and privacy policy';
     }
 
     setErrors(newErrors);
@@ -83,7 +83,7 @@ const Register: React.FC = () => {
       [name]: type === 'checkbox' ? checked : value,
     }));
 
-    // 清除对应字段的错误信息
+    // Clear corresponding field error messages
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -113,15 +113,15 @@ const Register: React.FC = () => {
             <span className="text-2xl">💎</span>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            创建新账户
+            Create New Account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            已有账户？{' '}
+            Already have an account?{' '}
             <Link
               to="/login"
               className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors"
             >
-              立即登录
+              Sign in now
             </Link>
           </p>
         </div>
@@ -130,7 +130,7 @@ const Register: React.FC = () => {
           <div className="space-y-4">
             <div>
               <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">
-                姓名 *
+                Full Name *
               </label>
               <input
                 id="full_name"
@@ -143,7 +143,7 @@ const Register: React.FC = () => {
                 className={`appearance-none relative block w-full px-3 py-2 border ${
                   errors.full_name ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm transition-colors`}
-                placeholder="请输入您的姓名"
+                placeholder="Enter your full name"
               />
               {errors.full_name && (
                 <p className="mt-1 text-sm text-red-600">{errors.full_name}</p>
@@ -152,7 +152,7 @@ const Register: React.FC = () => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                邮箱地址 *
+                Email Address *
               </label>
               <input
                 id="email"
@@ -165,7 +165,7 @@ const Register: React.FC = () => {
                 className={`appearance-none relative block w-full px-3 py-2 border ${
                   errors.email ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm transition-colors`}
-                placeholder="请输入邮箱地址"
+                placeholder="Enter your email address"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -174,7 +174,7 @@ const Register: React.FC = () => {
 
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                用户名
+                Username
               </label>
               <input
                 id="username"
@@ -186,7 +186,7 @@ const Register: React.FC = () => {
                 className={`appearance-none relative block w-full px-3 py-2 border ${
                   errors.username ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm transition-colors`}
-                placeholder="请输入用户名（可选）"
+                placeholder="Enter username (optional)"
               />
               {errors.username && (
                 <p className="mt-1 text-sm text-red-600">{errors.username}</p>
@@ -195,7 +195,7 @@ const Register: React.FC = () => {
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                手机号码
+                Phone Number
               </label>
               <input
                 id="phone"
@@ -207,7 +207,7 @@ const Register: React.FC = () => {
                 className={`appearance-none relative block w-full px-3 py-2 border ${
                   errors.phone ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm transition-colors`}
-                placeholder="请输入手机号码（可选）"
+                placeholder="Enter phone number (optional)"
               />
               {errors.phone && (
                 <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
@@ -216,7 +216,7 @@ const Register: React.FC = () => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                密码 *
+                Password *
               </label>
               <input
                 id="password"
@@ -229,7 +229,7 @@ const Register: React.FC = () => {
                 className={`appearance-none relative block w-full px-3 py-2 border ${
                   errors.password ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm transition-colors`}
-                placeholder="请输入密码"
+                placeholder="Enter your password"
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -238,7 +238,7 @@ const Register: React.FC = () => {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                确认密码 *
+                Confirm Password *
               </label>
               <input
                 id="confirmPassword"
@@ -251,7 +251,7 @@ const Register: React.FC = () => {
                 className={`appearance-none relative block w-full px-3 py-2 border ${
                   errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm transition-colors`}
-                placeholder="请再次输入密码"
+                placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
@@ -272,13 +272,13 @@ const Register: React.FC = () => {
             </div>
             <div className="ml-3 text-sm">
               <label htmlFor="agree_terms" className="text-gray-900">
-                我同意{' '}
+                I agree to the{' '}
                 <Link to="/terms" className="text-emerald-600 hover:text-emerald-500">
-                  用户协议
+                  Terms of Service
                 </Link>{' '}
-                和{' '}
+                and{' '}
                 <Link to="/privacy" className="text-emerald-600 hover:text-emerald-500">
-                  隐私政策
+                  Privacy Policy
                 </Link>
               </label>
               {errors.agree_terms && (
@@ -295,7 +295,7 @@ const Register: React.FC = () => {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">
-                    注册失败
+                    Registration Failed
                   </h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>{authError.message}</p>
@@ -314,10 +314,10 @@ const Register: React.FC = () => {
               {authLoading ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  注册中...
+                  Creating account...
                 </div>
               ) : (
-                '创建账户'
+                'Create Account'
               )}
             </button>
           </div>

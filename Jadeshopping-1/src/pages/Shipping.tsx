@@ -15,6 +15,7 @@ import {
   Calendar,
   Star
 } from 'lucide-react';
+import ContentPageWrapper from '@/components/ContentPageWrapper';
 
 interface ShippingZone {
   name: string;
@@ -32,91 +33,103 @@ interface ShippingService {
 }
 
 const Shipping: React.FC = () => {
+  return (
+    <ContentPageWrapper
+      pageKey="shipping"
+      defaultTitle="Shipping Information - Guaranteed Antiques"
+      defaultDescription="Learn about our shipping policies, delivery times, and costs for antique purchases. Professional packaging and secure delivery guaranteed."
+    >
+      {(contentPage, loading) => <ShippingContent contentPage={contentPage} />}
+    </ContentPageWrapper>
+  );
+};
+
+const ShippingContent: React.FC<{ contentPage: any }> = ({ contentPage }) => {
   const shippingZones: ShippingZone[] = [
     {
-      name: '一线城市',
-      areas: ['北京', '上海', '广州', '深圳', '杭州', '南京', '苏州', '成都', '武汉', '西安'],
-      time: '24-48小时',
-      fee: '免费配送',
-      note: '部分地区支持当日达'
+      name: 'Tier 1 Cities',
+      areas: ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Hangzhou', 'Nanjing', 'Suzhou', 'Chengdu', 'Wuhan', 'Xi\'an'],
+      time: '24-48 hours',
+      fee: 'Free shipping',
+      note: 'Same-day delivery available in selected areas'
     },
     {
-      name: '二线城市',
-      areas: ['天津', '重庆', '青岛', '大连', '宁波', '厦门', '福州', '长沙', '郑州', '济南'],
-      time: '2-3天',
-      fee: '免费配送',
-      note: '工作日优先配送'
+      name: 'Tier 2 Cities',
+      areas: ['Tianjin', 'Chongqing', 'Qingdao', 'Dalian', 'Ningbo', 'Xiamen', 'Fuzhou', 'Changsha', 'Zhengzhou', 'Jinan'],
+      time: '2-3 days',
+      fee: 'Free shipping',
+      note: 'Priority delivery on weekdays'
     },
     {
-      name: '三线及其他城市',
-      areas: ['全国其他地级市及县级市'],
-      time: '3-5天',
-      fee: '免费配送',
-      note: '偏远地区可能需要额外1-2天'
+      name: 'Tier 3 & Other Cities',
+      areas: ['Other prefecture-level and county-level cities nationwide'],
+      time: '3-5 days',
+      fee: 'Free shipping',
+      note: 'Remote areas may require an additional 1-2 days'
     },
     {
-      name: '港澳台地区',
-      areas: ['香港', '澳门', '台湾'],
-      time: '5-7天',
-      fee: '¥50起',
-      note: '需要提供身份证明文件'
+      name: 'Hong Kong, Macau & Taiwan',
+      areas: ['Hong Kong', 'Macau', 'Taiwan'],
+      time: '5-7 days',
+      fee: 'From $50',
+      note: 'Identity documents required'
     },
     {
-      name: '海外地区',
-      areas: ['美国', '加拿大', '澳洲', '欧洲', '日韩', '东南亚'],
-      time: '7-15天',
-      fee: '¥200起',
-      note: '具体费用根据重量和目的地计算'
+      name: 'International',
+      areas: ['USA', 'Canada', 'Australia', 'Europe', 'Japan & Korea', 'Southeast Asia'],
+      time: '7-15 days',
+      fee: 'From $200',
+      note: 'Specific fees calculated based on weight and destination'
     }
   ];
 
   const shippingServices: ShippingService[] = [
     {
       icon: <Truck className="w-8 h-8 text-jade-600" />,
-      title: '标准配送',
-      description: '经济实惠的配送选择，适合大部分订单',
+      title: 'Standard Shipping',
+      description: 'Economical shipping option suitable for most orders',
       features: [
-        '全国包邮（订单满299元）',
-        '专业包装，安全可靠',
-        '物流全程跟踪',
-        '签收确认服务',
-        '配送时间：2-5个工作日'
+        'Free nationwide shipping (orders over $299)',
+        'Professional packaging, safe and reliable',
+        'Full logistics tracking',
+        'Delivery confirmation service',
+        'Delivery time: 2-5 business days'
       ]
     },
     {
       icon: <Clock className="w-8 h-8 text-jade-600" />,
-      title: '加急配送',
-      description: '更快的配送速度，满足您的紧急需求',
+      title: 'Express Shipping',
+      description: 'Faster delivery speed to meet your urgent needs',
       features: [
-        '优先处理和发货',
-        '24-48小时送达（限一线城市）',
-        '专人配送，安全保障',
-        '实时位置跟踪',
-        '额外费用：¥30-50'
+        'Priority processing and shipping',
+        '24-48 hour delivery (Tier 1 cities only)',
+        'Dedicated delivery, security guaranteed',
+        'Real-time location tracking',
+        'Additional fee: $30-50'
       ]
     },
     {
       icon: <Shield className="w-8 h-8 text-jade-600" />,
-      title: '保价配送',
-      description: '高价值商品的专业配送服务',
+      title: 'Insured Shipping',
+      description: 'Professional shipping service for high-value items',
       features: [
-        '全程保险保障',
-        '专业防震包装',
-        '签收时验货服务',
-        '丢失损坏全额赔付',
-        '保价费用：商品价值的0.5%'
+        'Full insurance coverage',
+        'Professional shock-proof packaging',
+        'Inspection service upon delivery',
+        'Full compensation for loss or damage',
+        'Insurance fee: 0.5% of item value'
       ]
     },
     {
       icon: <Package className="w-8 h-8 text-jade-600" />,
-      title: '自提服务',
-      description: '到店自提，节省配送费用',
+      title: 'Store Pickup',
+      description: 'Pick up at store to save shipping costs',
       features: [
-        '门店自提免配送费',
-        '专业人员现场验货',
-        '提供包装和保养指导',
-        '支持预约到店时间',
-        '全国20+门店支持'
+        'Free pickup at store locations',
+        'Professional on-site inspection',
+        'Packaging and care guidance provided',
+        'Appointment scheduling supported',
+        '20+ stores nationwide'
       ]
     }
   ];
@@ -124,53 +137,53 @@ const Shipping: React.FC = () => {
   const packagingFeatures = [
     {
       icon: <Shield className="w-6 h-6 text-jade-600" />,
-      title: '防震包装',
-      description: '采用专业防震材料，多层保护您的珍贵玉石'
+      title: 'Shock-Proof Packaging',
+      description: 'Professional shock-proof materials with multi-layer protection for your precious jade'
     },
     {
       icon: <Package className="w-6 h-6 text-jade-600" />,
-      title: '密封防潮',
-      description: '防潮密封包装，确保玉石在运输过程中保持最佳状态'
+      title: 'Moisture-Proof Sealing',
+      description: 'Moisture-proof sealed packaging ensures jade maintains optimal condition during transport'
     },
     {
       icon: <CheckCircle className="w-6 h-6 text-jade-600" />,
-      title: '品质检验',
-      description: '发货前严格质检，确保每件商品都符合品质标准'
+      title: 'Quality Inspection',
+      description: 'Strict quality control before shipping ensures every item meets quality standards'
     },
     {
       icon: <Star className="w-6 h-6 text-jade-600" />,
-      title: '精美包装',
-      description: '精美的礼品包装，让您的玉石更显珍贵'
+      title: 'Elegant Packaging',
+      description: 'Beautiful gift packaging makes your jade even more precious'
     }
   ];
 
   const specialItems = [
     {
-      category: '大件商品',
-      items: ['大型摆件', '石雕作品', '玉石原石'],
-      note: '采用木箱包装，物流专线配送，配送时间3-7天',
-      fee: '根据重量和体积计算，一般¥50-200'
+      category: 'Large Items',
+      items: ['Large ornaments', 'Stone sculptures', 'Jade rough stones'],
+      note: 'Wooden crate packaging, dedicated logistics delivery, 3-7 days delivery time',
+      fee: 'Calculated by weight and volume, typically $50-200'
     },
     {
-      category: '定制商品',
-      items: ['个人定制饰品', '企业定制礼品', '特殊工艺品'],
-      note: '制作完成后48小时内发货，包装更加精美',
-      fee: '免费配送，提供专属包装'
+      category: 'Custom Items',
+      items: ['Personal custom jewelry', 'Corporate custom gifts', 'Special crafts'],
+      note: 'Ships within 48 hours after completion, with more elegant packaging',
+      fee: 'Free shipping with exclusive packaging'
     },
     {
-      category: '高价值商品',
-      items: ['收藏级玉石', '古董玉器', '投资级原石'],
-      note: '专人护送，保价配送，支持上门验货',
-      fee: '保价费用另计，提供全程保险'
+      category: 'High-Value Items',
+      items: ['Collector-grade jade', 'Antique jade', 'Investment-grade rough stones'],
+      note: 'Personal escort, insured delivery, door-to-door inspection supported',
+      fee: 'Insurance fees calculated separately, full coverage provided'
     }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>配送信息 - 玉石轩</title>
-        <meta name="description" content="玉石轩配送信息，包含配送范围、时间、费用说明、包装保护措施和物流跟踪服务" />
-        <meta name="keywords" content="玉石配送,物流信息,配送费用,包装保护,物流跟踪" />
+        <title>Shipping Information - Jade Emporium</title>
+        <meta name="description" content="Jade Emporium shipping information, including delivery areas, timeframes, fee details, packaging protection and logistics tracking services" />
+        <meta name="keywords" content="jade shipping,logistics information,shipping fees,packaging protection,logistics tracking" />
       </Helmet>
 
       {/* 面包屑导航 */}
@@ -178,10 +191,10 @@ const Shipping: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav className="flex items-center space-x-2 text-sm">
             <Link to="/" className="text-gray-500 hover:text-jade-600">
-              首页
+              Home
             </Link>
             <span className="text-gray-400">/</span>
-            <span className="text-gray-900">配送信息</span>
+            <span className="text-gray-900">Shipping Information</span>
           </nav>
         </div>
       </div>
@@ -191,16 +204,16 @@ const Shipping: React.FC = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
             <Truck className="w-12 h-12 text-jade-600 mr-3" />
-            <h1 className="text-4xl font-bold text-gray-900">配送信息</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Shipping Information</h1>
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            专业安全的配送服务，让您的珍贵玉石安全送达
+            Professional and secure shipping services to safely deliver your precious jade treasures
           </p>
         </div>
 
         {/* 配送范围和时间 */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">配送范围与时效</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Delivery Areas & Timeframes</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {shippingZones.map((zone, index) => (
               <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -210,17 +223,17 @@ const Shipping: React.FC = () => {
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">覆盖区域：</p>
-                    <p className="text-gray-700 text-sm">{zone.areas.join('、')}</p>
+                    <p className="text-sm text-gray-500 mb-1">Coverage Areas:</p>
+                    <p className="text-gray-700 text-sm">{zone.areas.join(', ')}</p>
                   </div>
                   <div className="flex items-center">
                     <Clock className="w-4 h-4 text-jade-600 mr-2" />
-                    <span className="text-sm text-gray-600">配送时间：</span>
+                    <span className="text-sm text-gray-600">Delivery Time:</span>
                     <span className="text-sm font-medium text-gray-900 ml-1">{zone.time}</span>
                   </div>
                   <div className="flex items-center">
                     <DollarSign className="w-4 h-4 text-jade-600 mr-2" />
-                    <span className="text-sm text-gray-600">配送费用：</span>
+                    <span className="text-sm text-gray-600">Shipping Fee:</span>
                     <span className="text-sm font-medium text-jade-600 ml-1">{zone.fee}</span>
                   </div>
                   {zone.note && (
@@ -237,7 +250,7 @@ const Shipping: React.FC = () => {
 
         {/* 配送服务类型 */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">配送服务类型</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Shipping Service Types</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {shippingServices.map((service, index) => (
               <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -263,7 +276,7 @@ const Shipping: React.FC = () => {
 
         {/* 包装保护 */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">包装保护措施</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Packaging Protection</h2>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {packagingFeatures.map((feature, index) => (
@@ -277,19 +290,19 @@ const Shipping: React.FC = () => {
               ))}
             </div>
             <div className="bg-jade-50 rounded-xl p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">包装流程</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-3">Packaging Process</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-jade-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
-                  <span className="text-gray-700 text-sm">质量检验与清洁</span>
+                  <span className="text-gray-700 text-sm">Quality inspection & cleaning</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-jade-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
-                  <span className="text-gray-700 text-sm">专业防护包装</span>
+                  <span className="text-gray-700 text-sm">Professional protective packaging</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-jade-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
-                  <span className="text-gray-700 text-sm">密封装箱发货</span>
+                  <span className="text-gray-700 text-sm">Sealed boxing & shipping</span>
                 </div>
               </div>
             </div>
@@ -298,53 +311,53 @@ const Shipping: React.FC = () => {
 
         {/* 物流跟踪 */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">物流跟踪服务</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Logistics Tracking Service</h2>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">跟踪方式</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Tracking Methods</h3>
                 <div className="space-y-4">
                   <div className="flex items-start">
                     <Search className="w-5 h-5 text-jade-600 mr-3 mt-1" />
                     <div>
-                      <h4 className="font-medium text-gray-900">官网查询</h4>
-                      <p className="text-gray-600 text-sm">登录账户查看订单状态和物流信息</p>
+                      <h4 className="font-medium text-gray-900">Website Inquiry</h4>
+                      <p className="text-gray-600 text-sm">Login to your account to view order status and logistics information</p>
                     </div>
                   </div>
                   <div className="flex items-start">
                     <Phone className="w-5 h-5 text-jade-600 mr-3 mt-1" />
                     <div>
-                      <h4 className="font-medium text-gray-900">短信通知</h4>
-                      <p className="text-gray-600 text-sm">关键节点自动发送短信提醒</p>
+                      <h4 className="font-medium text-gray-900">SMS Notifications</h4>
+                      <p className="text-gray-600 text-sm">Automatic SMS reminders at key milestones</p>
                     </div>
                   </div>
                   <div className="flex items-start">
                     <Calendar className="w-5 h-5 text-jade-600 mr-3 mt-1" />
                     <div>
-                      <h4 className="font-medium text-gray-900">预约配送</h4>
-                      <p className="text-gray-600 text-sm">支持预约配送时间，避免无人收货</p>
+                      <h4 className="font-medium text-gray-900">Scheduled Delivery</h4>
+                      <p className="text-gray-600 text-sm">Schedule delivery time to avoid missed deliveries</p>
                     </div>
                   </div>
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">配送状态</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Delivery Status</h3>
                 <div className="space-y-3">
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700 text-sm">订单确认 - 正在准备商品</span>
+                    <span className="text-gray-700 text-sm">Order Confirmed - Preparing items</span>
                   </div>
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700 text-sm">商品出库 - 已交付物流公司</span>
+                    <span className="text-gray-700 text-sm">Shipped - Handed to logistics company</span>
                   </div>
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700 text-sm">运输中 - 商品正在配送途中</span>
+                    <span className="text-gray-700 text-sm">In Transit - Items on delivery route</span>
                   </div>
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700 text-sm">已送达 - 商品已成功送达</span>
+                    <span className="text-gray-700 text-sm">Delivered - Items successfully delivered</span>
                   </div>
                 </div>
               </div>
@@ -354,22 +367,22 @@ const Shipping: React.FC = () => {
 
         {/* 特殊商品配送 */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">特殊商品配送说明</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Special Item Shipping</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {specialItems.map((item, index) => (
               <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">{item.category}</h3>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">包含商品：</p>
-                    <p className="text-gray-700 text-sm">{item.items.join('、')}</p>
+                    <p className="text-sm text-gray-500 mb-1">Included Items:</p>
+                    <p className="text-gray-700 text-sm">{item.items.join(', ')}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">配送说明：</p>
+                    <p className="text-sm text-gray-500 mb-1">Shipping Notes:</p>
                     <p className="text-gray-700 text-sm">{item.note}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">费用说明：</p>
+                    <p className="text-sm text-gray-500 mb-1">Fee Details:</p>
                     <p className="text-jade-600 text-sm font-medium">{item.fee}</p>
                   </div>
                 </div>
@@ -380,8 +393,8 @@ const Shipping: React.FC = () => {
 
         {/* 联系我们 */}
         <div className="bg-gradient-to-r from-jade-600 to-jade-700 rounded-2xl p-8 text-white text-center">
-          <h3 className="text-2xl font-bold mb-4">配送相关问题？</h3>
-          <p className="text-jade-100 mb-6">我们的客服团队随时为您解答配送相关的任何问题</p>
+          <h3 className="text-2xl font-bold mb-4">Shipping Questions?</h3>
+          <p className="text-jade-100 mb-6">Our customer service team is ready to answer any shipping-related questions</p>
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
             <div className="flex items-center">
               <Phone className="w-5 h-5 mr-2" />
@@ -389,12 +402,12 @@ const Shipping: React.FC = () => {
             </div>
             <div className="flex items-center">
               <Clock className="w-5 h-5 mr-2" />
-              <span>7×24小时服务</span>
+              <span>24/7 Service</span>
             </div>
           </div>
           <div className="mt-6">
             <Link to="/contact" className="inline-block bg-white text-jade-600 px-8 py-3 rounded-lg font-medium hover:bg-jade-50 transition-colors">
-              联系客服
+              Contact Support
             </Link>
           </div>
         </div>

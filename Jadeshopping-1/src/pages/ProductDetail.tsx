@@ -12,59 +12,303 @@ import {
   ArrowLeft,
   Truck,
   Shield,
-  RotateCcw
+  RotateCcw,
+  Wifi,
+  WifiOff,
+  AlertTriangle
 } from 'lucide-react'
-import { mockProductDetails, mockProducts, type ProductDetail } from '@/data/mockData'
+import { ProductService } from '@/services/productService'
 import ProductCard from '@/components/ui/ProductCard'
 import { AddToCartAnimation } from '@/components/AddToCartAnimation'
 import { useAddToCartAnimation } from '@/hooks/useAddToCartAnimation'
 import { useStore } from '@/store/useStore'
+import { realtimeSyncService } from '@/services/realtimeSyncService'
+import { toast } from 'sonner'
+import type { Product } from '@/types'
+
+// Extended product type to support detail pages
+interface ProductDetail extends Product {
+  detailed_description: string;
+  reviews: any[];
+  rating: number;
+  review_count: number;
+  gallery_images: string[];
+  related_products: string[];
+}
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [product, setProduct] = useState<ProductDetail | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'reviews'>('description')
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isConnected, setIsConnected] = useState(true)
+  const [stockWarning, setStockWarning] = useState<string | null>(null)
   
   const { addToCart, toggleFavorite, isFavorite } = useStore()
   const { animationData, triggerAnimation, onAnimationComplete } = useAddToCartAnimation()
+  
+  const productService = new ProductService()
 
   useEffect(() => {
-    if (id && mockProductDetails[id]) {
-      setProduct(mockProductDetails[id])
-    } else {
-      // 如果没有找到商品，跳转到商品列表页
-      navigate('/products')
+    const loadProduct = async () => {
+      if (!id) {
+        navigate('/products')
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+
+        const result = await productService.getProductById(id)
+        
+        if (result.success && result.data) {
+          // Transform Product to ProductDetail
+          const productDetail: ProductDetail = {
+            ...result.data,
+            detailed_description: result.data.description,
+            reviews: [], // TODO: Load reviews from database
+            rating: 4.5, // TODO: Calculate from reviews
+            review_count: 0, // TODO: Count from reviews
+            gallery_images: result.data.images,
+            related_products: [] // TODO: Load related products
+          }
+          setProduct(productDetail)
+          
+          // 检查库存状态
+          if (productDetail.stock_quantity === 0) {
+            setStockWarning('This product is currently out of stock')
+          } else if (productDetail.stock_quantity <= 5) {
+            setStockWarning(`Only ${productDetail.stock_quantity} items left in stock`)
+          }
+        } else {
+          setError('Product not found')
+          setTimeout(() => navigate('/products'), 2000)
+        }
+      } catch (err) {
+        console.error('Error loading product:', err)
+        setError('Failed to load product')
+        setTimeout(() => navigate('/products'), 2000)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProduct()
+  }, [id, navigate])
+
+  // 设置实时订阅
+  useEffect(() => {
+    if (!id) return
+
+    const initializeRealtime = async () => {
+      try {
+        await realtimeSyncService.initialize({
+          onProductStockUpdate: (stockUpdate) => {
+            if (stockUpdate.id === id) {
+              setProduct(prev => prev ? {
+                ...prev,
+                stock_quantity: stockUpdate.stock_quantity,
+                is_available: stockUpdate.is_available
+              } : null)
+              
+              // 更新库存警告
+              if (stockUpdate.stock_quantity === 0) {
+                setStockWarning('This product is now out of stock')
+                toast.error('Product is now out of stock', {
+                  duration: 5000,
+                  action: {
+                    label: 'View Similar',
+                    onClick: () => navigate('/products')
+                  }
+                })
+              } else if (stockUpdate.stock_quantity <= 5) {
+                setStockWarning(`Only ${stockUpdate.stock_quantity} items left in stock`)
+                toast.warning(`Only ${stockUpdate.stock_quantity} items left in stock`, {
+                  duration: 4000
+                })
+              } else {
+                setStockWarning(null)
+                if (stockUpdate.previous_stock && stockUpdate.previous_stock <= 5) {
+                  toast.success('Product is back in stock!')
+                }
+              }
+            }
+          },
+          onProductUpdate: (updatedProduct) => {
+            if (updatedProduct.id === id) {
+              setProduct(prev => prev ? {
+                ...prev,
+                ...updatedProduct,
+                detailed_description: updatedProduct.description,
+                gallery_images: updatedProduct.images
+              } : null)
+              toast.info('Product information has been updated', {
+                duration: 3000
+              })
+            }
+          },
+          onConnectionChange: (connected) => {
+            setIsConnected(connected)
+            if (connected) {
+              toast.success('Real-time updates connected', { duration: 2000 })
+            } else {
+              toast.warning('Real-time updates disconnected', { duration: 3000 })
+            }
+          },
+          onError: (error) => {
+            console.error('Realtime sync error:', error)
+            toast.error('Real-time sync error occurred')
+          }
+        })
+
+        // 订阅特定产品的库存变化
+        await realtimeSyncService.subscribeToProductStock(id, (payload) => {
+          console.log('Product stock changed:', payload)
+        })
+      } catch (error) {
+        console.error('Failed to initialize realtime sync:', error)
+        setIsConnected(false)
+      }
+    }
+
+    initializeRealtime()
+
+    return () => {
+      realtimeSyncService.unsubscribeAll()
     }
   }, [id, navigate])
 
-  if (!product) {
+  useEffect(() => {
+    const loadRelatedProducts = async () => {
+      if (!product?.category_id) return
+      
+      try {
+        const relatedResult = await productService.getProductsByCategory(product.category_id, 4)
+        if (relatedResult.success && relatedResult.data) {
+          // Filter out current product
+          const filtered = relatedResult.data.filter(p => p.id !== id)
+          setRelatedProducts(filtered.slice(0, 4))
+        }
+      } catch (err) {
+        console.error('Error loading related products:', err)
+      }
+    }
+
+    loadRelatedProducts()
+  }, [product?.category_id, id])
+
+  // 处理添加到购物车（带库存检查）
+  const handleAddToCart = async (event: React.MouseEvent) => {
+    if (!product) return
+
+    // 检查库存
+    if (product.stock_quantity === 0) {
+      toast.error('Product is out of stock')
+      return
+    }
+
+    if (quantity > product.stock_quantity) {
+      toast.error(`Only ${product.stock_quantity} items available`)
+      setQuantity(product.stock_quantity)
+      return
+    }
+
+    try {
+      // 乐观更新库存
+      await realtimeSyncService.optimisticStockUpdate(
+        product.id,
+        -quantity,
+        (productId, newStock) => {
+          setProduct(prev => prev ? {
+            ...prev,
+            stock_quantity: newStock,
+            is_available: newStock > 0
+          } : null)
+        }
+      )
+
+      // 添加到购物车
+      addToCart(product, quantity)
+      
+      // 触发动画
+      const rect = (event.target as HTMLElement).getBoundingClientRect()
+      triggerAnimation({
+        startX: rect.left + rect.width / 2,
+        startY: rect.top + rect.height / 2,
+        productImage: product.image_url || '/placeholder-product.jpg',
+        productName: product.name
+      })
+
+      toast.success(`Added ${quantity} ${product.name} to cart`)
+      setQuantity(1) // 重置数量
+    } catch (error) {
+      console.error('Failed to add to cart:', error)
+      toast.error('Failed to add to cart, please try again')
+    }
+  }
+
+  // 数量变更处理
+  const handleQuantityChange = (newQuantity: number) => {
+    if (!product) return
+    
+    if (newQuantity <= 0) {
+      setQuantity(1)
+      return
+    }
+    
+    if (newQuantity > product.stock_quantity) {
+      toast.warning(`Only ${product.stock_quantity} items available`)
+      setQuantity(product.stock_quantity)
+      return
+    }
+    
+    setQuantity(newQuantity)
+  }
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-jade-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">加载中...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-jade-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading product details...</p>
         </div>
       </div>
     )
   }
 
-  const relatedProducts = product.related_products
-    .map(id => mockProducts.find(p => p.id === id))
-    .filter(Boolean)
-    .slice(0, 4)
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h2>
+          <p className="text-gray-600 mb-4">{error || 'The product you are looking for does not exist.'}</p>
+          <button
+            onClick={() => navigate('/products')}
+            className="bg-jade-600 text-white px-6 py-2 rounded-lg hover:bg-jade-700 transition-colors"
+          >
+            Back to Products
+          </button>
+        </div>
+      </div>
+    )
+  }
 
-  const handleQuantityChange = (change: number) => {
+  const handleQuantityChangeByDelta = (change: number) => {
     const newQuantity = quantity + change
     if (newQuantity >= 1 && newQuantity <= product.stock_quantity) {
       setQuantity(newQuantity)
     }
   }
 
-  const handleAddToCart = (e?: React.MouseEvent) => {
+  const handleAddToCart = async (e?: React.MouseEvent) => {
     // 将商品详情转换为Product类型
     const productForCart = {
       id: product.id,
@@ -83,8 +327,33 @@ const ProductDetail: React.FC = () => {
       triggerAnimation(productForCart, e)
     }
     
-    // 添加指定数量的商品到购物车
-    addToCart(productForCart, quantity)
+    // 乐观更新：先添加到购物车，然后同步到服务器
+    try {
+      // 先执行本地更新
+      addToCart(productForCart, quantity)
+      toast.success(`Added ${quantity} item(s) to cart`)
+      
+      // 使用乐观更新同步到服务器
+      await realtimeSyncService.optimisticUpdateWithRetry(
+        'cart_items',
+        `${product.id}_${Date.now()}`, // 临时ID，实际应该从服务器获取
+        {
+          product_id: product.id,
+          quantity: quantity,
+          user_id: 'current_user_id' // 应该从认证状态获取
+        },
+        () => {
+          // 本地更新已经在 addToCart 中完成
+        },
+        () => {
+          // 回滚操作：从购物车移除商品
+          toast.error('Failed to add to cart, please try again')
+        }
+      )
+    } catch (error) {
+      console.error('Failed to add to cart:', error)
+      toast.error('Failed to add to cart')
+    }
   }
 
 
@@ -121,43 +390,60 @@ const ProductDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 面包屑导航 */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <nav className="flex items-center space-x-2 text-sm">
-            <Link to="/" className="text-gray-500 hover:text-jade-600">
-              首页
-            </Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/products" className="text-gray-500 hover:text-jade-600">
-              商品列表
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900 font-medium">{product.name}</span>
-          </nav>
+      {/* 连接状态指示器 */}
+      <div className="fixed top-4 right-4 z-50">
+        <div className={`flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-medium transition-all ${
+          isConnected 
+            ? 'bg-green-100 text-green-800' 
+            : 'bg-red-100 text-red-800'
+        }`}>
+          {isConnected ? (
+            <>
+              <Wifi className="w-4 h-4" />
+              <span>Live Updates</span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="w-4 h-4" />
+              <span>Offline</span>
+            </>
+          )}
         </div>
       </div>
 
+      {/* 库存警告 */}
+      {stockWarning && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+          <div className="flex items-center">
+            <AlertTriangle className="w-5 h-5 text-yellow-400 mr-2" />
+            <p className="text-yellow-700 font-medium">{stockWarning}</p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 返回按钮 */}
+        <div className="mb-6">
+          <Link
+            to="/products"
+            className="inline-flex items-center text-jade-600 hover:text-jade-700 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Products
+          </Link>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* 商品图片区域 */}
           <div className="space-y-4">
             {/* 主图 */}
-            <div className="aspect-square bg-white rounded-lg overflow-hidden border relative">
+            <div className="aspect-square bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <img
-                src={product.gallery_images[selectedImageIndex]}
+                src={product.gallery_images[selectedImageIndex] || product.image_url || '/placeholder-product.jpg'}
                 alt={product.name}
-                className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover cursor-pointer"
                 onClick={() => setIsImageModalOpen(true)}
               />
-              {/* 售罄标签覆盖层 */}
-              {product.stock_quantity === 0 && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                  <div className="bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-xl shadow-lg">
-                    售罄
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* 缩略图 */}
@@ -169,7 +455,7 @@ const ProductDetail: React.FC = () => {
                     onClick={() => setSelectedImageIndex(index)}
                     className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
                       selectedImageIndex === index
-                        ? 'border-jade-500'
+                        ? 'border-jade-600'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -190,144 +476,133 @@ const ProductDetail: React.FC = () => {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {product.name}
               </h1>
-              <p className="text-gray-600 text-lg">
-                {product.description}
-              </p>
-            </div>
-
-            {/* 评分和评价 */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                {renderStars(product.rating)}
-                <span className="text-sm text-gray-600 ml-2">
-                  {product.rating.toFixed(1)}
-                </span>
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.floor(product.rating)
+                          ? 'text-yellow-400 fill-current'
+                          : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
+                  <span className="ml-2 text-sm text-gray-600">
+                    ({product.review_count} reviews)
+                  </span>
+                </div>
               </div>
-              <span className="text-sm text-gray-500">
-                {product.review_count} 条评价
-              </span>
-            </div>
-
-            {/* 价格 */}
-            <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-jade-600">
+              <div className="text-3xl font-bold text-jade-600 mb-4">
                 ¥{product.price.toLocaleString()}
-              </span>
+              </div>
             </div>
 
             {/* 库存状态 */}
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">库存：</span>
-              {product.stock_quantity > 0 ? (
-                <span className="text-sm font-medium text-green-600">
-                  {product.stock_quantity} 件
-                </span>
-              ) : (
-                <div className="bg-red-100 border border-red-300 text-red-700 px-3 py-1 rounded-lg">
-                  <span className="text-sm font-bold">售罄</span>
-                </div>
-              )}
+              <span className="text-sm text-gray-600">Stock:</span>
+              <span className={`text-sm font-medium ${
+                product.stock_quantity === 0 
+                  ? 'text-red-600' 
+                  : product.stock_quantity <= 5 
+                    ? 'text-yellow-600' 
+                    : 'text-green-600'
+              }`}>
+                {product.stock_quantity === 0 
+                  ? 'Out of Stock' 
+                  : `${product.stock_quantity} available`
+                }
+              </span>
             </div>
 
             {/* 数量选择 */}
-            {product.stock_quantity > 0 && (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">数量：</span>
-                <div className="flex items-center border border-gray-300 rounded-lg">
-                  <button
-                    onClick={() => handleQuantityChange(-1)}
-                    disabled={quantity <= 1}
-                    className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="px-4 py-2 min-w-[60px] text-center">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= product.stock_quantity}
-                    className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 操作按钮 */}
-            <div className="space-y-4">
-              <div className="flex space-x-4">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-gray-700">Quantity:</span>
+              <div className="flex items-center border border-gray-300 rounded-lg">
                 <button
-                  onClick={handleAddToCart}
-                  disabled={product.stock_quantity === 0}
-                  className="flex-1 bg-jade-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-jade-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 transition-colors flex items-center justify-center space-x-2"
+                  onClick={() => handleQuantityChangeByDelta(-1)}
+                  disabled={quantity <= 1}
+                  className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ShoppingCart className="w-5 h-5" />
-                  <span>{product.stock_quantity === 0 ? '售罄' : '加入购物车'}</span>
+                  <Minus className="w-4 h-4" />
                 </button>
-              </div>
-
-              <div className="flex space-x-4">
+                <input
+                  type="number"
+                  min="1"
+                  max={product.stock_quantity}
+                  value={quantity}
+                  onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                  className="w-16 text-center border-0 focus:ring-0"
+                />
                 <button
-                  onClick={handleToggleFavorite}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
-                    isFavorite(product.id)
-                      ? 'border-red-300 text-red-600 bg-red-50'
-                      : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                  }`}
+                  onClick={() => handleQuantityChangeByDelta(1)}
+                  disabled={quantity >= product.stock_quantity}
+                  className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Heart className={`w-5 h-5 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
-                  <span>{isFavorite(product.id) ? '已收藏' : '收藏'}</span>
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  <Share2 className="w-5 h-5" />
-                  <span>分享</span>
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* 服务保障 */}
-            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-              <h3 className="font-medium text-gray-900">服务保障</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Truck className="w-4 h-4 text-jade-600" />
-                  <span className="text-gray-600">包邮配送</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4 text-jade-600" />
-                  <span className="text-gray-600">正品保证</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RotateCcw className="w-4 h-4 text-jade-600" />
-                  <span className="text-gray-600">7天退换</span>
-                </div>
+            {/* 操作按钮 */}
+            <div className="flex space-x-4">
+              <button
+                onClick={handleAddToCart}
+                disabled={product.stock_quantity === 0}
+                className="flex-1 bg-jade-600 text-white px-6 py-3 rounded-lg hover:bg-jade-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                <span>{product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
+              </button>
+              <button
+                onClick={() => toggleFavorite(product.id)}
+                className={`p-3 rounded-lg border transition-colors ${
+                  isFavorite(product.id)
+                    ? 'bg-red-50 border-red-200 text-red-600'
+                    : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <Heart className={`w-5 h-5 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
+              </button>
+              <button className="p-3 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">
+                <Share2 className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* 产品特性 */}
+            <div className="space-y-3 pt-6 border-t border-gray-200">
+              <div className="flex items-center space-x-2">
+                <Truck className="w-4 h-4 text-jade-600" />
+                <span className="text-gray-600">Free shipping on orders over ¥99</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Shield className="w-4 h-4 text-jade-600" />
+                <span className="text-gray-600">Authentic Guarantee</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RotateCcw className="w-4 h-4 text-jade-600" />
+                <span className="text-gray-600">30-day return policy</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* 商品详情标签页 */}
-        <div className="bg-white rounded-lg shadow-sm">
-          {/* 标签导航 */}
-          <div className="border-b">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-12">
+          <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
               {[
-                { key: 'description', label: '商品详情' },
-                { key: 'specifications', label: '规格参数' },
-                { key: 'reviews', label: `用户评价 (${product.review_count})` },
+                { key: 'description', label: 'Description' },
+                { key: 'specifications', label: 'Specifications' },
+                { key: 'reviews', label: 'Reviews' }
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as any)}
-                  className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.key
-                      ? 'border-jade-500 text-jade-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-jade-600 text-jade-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
                   {tab.label}
@@ -336,97 +611,57 @@ const ProductDetail: React.FC = () => {
             </nav>
           </div>
 
-          {/* 标签内容 */}
           <div className="p-6">
             {activeTab === 'description' && (
-              <div 
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: product.detailed_description }}
-              />
+              <div className="prose max-w-none">
+                <p className="text-gray-700 leading-relaxed">
+                  {product.detailed_description}
+                </p>
+              </div>
             )}
 
             {activeTab === 'specifications' && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">规格参数</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="text-gray-600 capitalize">{key}：</span>
-                      <span className="text-gray-900 font-medium">{value}</span>
-                    </div>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Category:</span>
+                    <span className="text-gray-600">{product.category_id}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Stock:</span>
+                    <span className="text-gray-600">{product.stock_quantity}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Availability:</span>
+                    <span className={`font-medium ${product.is_available ? 'text-green-600' : 'text-red-600'}`}>
+                      {product.is_available ? 'In Stock' : 'Out of Stock'}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'reviews' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">用户评价</h3>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center space-x-1">
-                      {renderStars(product.rating)}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      {product.rating.toFixed(1)} 分
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {product.reviews.map((review) => (
-                    <div key={review.id} className="border-b border-gray-100 pb-4">
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          {review.user_avatar ? (
-                            <img
-                              src={review.user_avatar}
-                              alt={review.user_name}
-                              className="w-10 h-10 rounded-full"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                              <span className="text-gray-600 text-sm font-medium">
-                                {review.user_name.charAt(0)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-medium text-gray-900">
-                              {review.user_name}
-                            </span>
-                            <div className="flex items-center space-x-1">
-                              {renderStars(review.rating)}
-                            </div>
-                          </div>
-                          <p className="text-gray-700 mb-2">{review.comment}</p>
-                          <span className="text-sm text-gray-500">
-                            {new Date(review.created_at).toLocaleDateString('zh-CN')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="text-center py-8">
+                <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* 相关推荐 */}
+        {/* 相关产品 */}
         {relatedProducts.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">相关推荐</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Related Products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
+              {relatedProducts.map(relatedProduct => (
                 <ProductCard
-                  key={relatedProduct!.id}
-                  product={relatedProduct!}
+                  key={relatedProduct.id}
+                  product={relatedProduct}
+                  viewMode="grid"
                   onAddToCart={addToCart}
                   onToggleFavorite={toggleFavorite}
-                  isFavorite={isFavorite(relatedProduct!.id)}
+                  isFavorite={isFavorite(relatedProduct.id)}
                 />
               ))}
             </div>
@@ -436,8 +671,8 @@ const ProductDetail: React.FC = () => {
 
       {/* 图片放大模态框 */}
       {isImageModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="relative max-w-4xl max-h-full">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="relative max-w-4xl max-h-full p-4">
             <button
               onClick={() => setIsImageModalOpen(false)}
               className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
@@ -447,27 +682,23 @@ const ProductDetail: React.FC = () => {
               </svg>
             </button>
             <img
-              src={product.gallery_images[selectedImageIndex]}
+              src={product.gallery_images[selectedImageIndex] || product.image_url || '/placeholder-product.jpg'}
               alt={product.name}
               className="max-w-full max-h-full object-contain"
             />
             {product.gallery_images.length > 1 && (
               <>
                 <button
-                  onClick={() => setSelectedImageIndex(
-                    selectedImageIndex === 0 
-                      ? product.gallery_images.length - 1 
-                      : selectedImageIndex - 1
+                  onClick={() => setSelectedImageIndex((prev) => 
+                    prev === 0 ? product.gallery_images.length - 1 : prev - 1
                   )}
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300"
                 >
                   <ChevronLeft className="w-8 h-8" />
                 </button>
                 <button
-                  onClick={() => setSelectedImageIndex(
-                    selectedImageIndex === product.gallery_images.length - 1 
-                      ? 0 
-                      : selectedImageIndex + 1
+                  onClick={() => setSelectedImageIndex((prev) => 
+                    prev === product.gallery_images.length - 1 ? 0 : prev + 1
                   )}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300"
                 >

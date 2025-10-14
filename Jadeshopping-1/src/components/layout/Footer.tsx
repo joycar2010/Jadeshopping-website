@@ -23,18 +23,20 @@ const Footer: React.FC = () => {
           {/* 品牌信息 */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-jade-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">玉</span>
-              </div>
-              <span className="text-xl font-bold text-jade-400">玉石轩</span>
+              <img 
+                src="/images/guaranteed-antiques-logo.png" 
+                alt="Guaranteed Antiques" 
+                className="h-8 w-8 object-contain"
+              />
+              <span className="text-xl font-bold text-jade-400">Guaranteed Antiques</span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
-              专业的玉石交易平台，致力于为您提供最优质的玉石产品和最贴心的服务。传承千年玉石文化，品味东方雅韵。
+              Professional antique trading platform, dedicated to providing you with the finest antique products and most attentive service. Preserving ancient cultural heritage with modern excellence.
             </p>
             
             {/* 社交媒体 */}
             <div>
-              <h4 className="text-sm font-semibold text-jade-400 mb-3">关注我们</h4>
+              <h4 className="text-sm font-semibold text-jade-400 mb-3">Follow Us</h4>
               <div className="flex flex-wrap gap-3">
                 <a href="#" className="text-gray-400 hover:text-jade-400 transition-colors" title="Facebook">
                   <Facebook className="h-5 w-5" />
@@ -72,26 +74,26 @@ const Footer: React.FC = () => {
 
           {/* 快速链接 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-jade-400">快速链接</h3>
+            <h3 className="text-lg font-semibold text-jade-400">Quick Links</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/products" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  商品中心
+                  Products
                 </Link>
               </li>
               <li>
                 <Link to="/categories" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  商品分类
+                  Categories
                 </Link>
               </li>
               <li>
                 <Link to="/about" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  关于我们
+                  About Us
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  联系我们
+                  Contact Us
                 </Link>
               </li>
             </ul>
@@ -99,31 +101,31 @@ const Footer: React.FC = () => {
 
           {/* 客户服务 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-jade-400">客户服务</h3>
+            <h3 className="text-lg font-semibold text-jade-400">Customer Service</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/help" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  帮助中心
+                  Help Center
                 </Link>
               </li>
               <li>
                 <Link to="/shipping" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  配送信息
+                  Shipping Info
                 </Link>
               </li>
               <li>
                 <Link to="/returns" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  退换货政策
+                  Returns Policy
                 </Link>
               </li>
               <li>
                 <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  隐私政策
+                  Privacy Policy
                 </Link>
               </li>
               <li>
                 <Link to="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  服务条款
+                  Terms of Service
                 </Link>
               </li>
             </ul>
@@ -131,39 +133,39 @@ const Footer: React.FC = () => {
 
           {/* 联系我们 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-jade-400">联系我们</h3>
+            <h3 className="text-lg font-semibold text-jade-400">Contact Us</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-jade-400" />
-                <span className="text-gray-400 text-sm">400-888-9999</span>
+                <span className="text-gray-400 text-sm">+1-800-ANTIQUE</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-jade-400" />
-                <span className="text-gray-400 text-sm">service@jademarket.com</span>
+                <span className="text-gray-400 text-sm">service@guaranteedantiques.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <MapPin className="h-4 w-4 text-jade-400 mt-0.5" />
-                <span className="text-gray-400 text-sm">北京市朝阳区玉石文化街88号</span>
+                <span className="text-gray-400 text-sm">123 Heritage Avenue, New York, NY 10001</span>
               </div>
             </div>
           </div>
 
           {/* 应用下载 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-jade-400">下载APP</h3>
+            <h3 className="text-lg font-semibold text-jade-400">Download App</h3>
             <div className="space-y-3">
               <a href="#" className="flex items-center space-x-3 text-gray-400 hover:text-jade-400 transition-colors group">
                 <Apple className="h-5 w-5" />
                 <div className="text-sm">
                   <div className="font-medium">App Store</div>
-                  <div className="text-xs text-gray-500 group-hover:text-jade-300">iOS版本下载</div>
+                  <div className="text-xs text-gray-500 group-hover:text-jade-300">Download for iOS</div>
                 </div>
               </a>
               <a href="#" className="flex items-center space-x-3 text-gray-400 hover:text-jade-400 transition-colors group">
                 <Smartphone className="h-5 w-5" />
                 <div className="text-sm">
                   <div className="font-medium">Google Play</div>
-                  <div className="text-xs text-gray-500 group-hover:text-jade-300">Android版本下载</div>
+                  <div className="text-xs text-gray-500 group-hover:text-jade-300">Download for Android</div>
                 </div>
               </a>
             </div>
@@ -174,17 +176,17 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-400 text-sm">
-              &copy; {currentYear} 玉石轩. 保留所有权利.
+              &copy; {currentYear} Guaranteed Antiques. All rights reserved.
             </div>
             <div className="flex space-x-6 text-sm">
               <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
-                隐私政策
+                Privacy Policy
               </Link>
               <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
-                服务条款
+                Terms of Service
               </Link>
               <Link to="/sitemap" className="text-gray-400 hover:text-white transition-colors">
-                网站地图
+                Sitemap
               </Link>
             </div>
           </div>

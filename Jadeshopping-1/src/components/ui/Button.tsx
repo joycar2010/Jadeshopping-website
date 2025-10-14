@@ -57,7 +57,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && (
           <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4"
+            className={cn(
+              "animate-spin -ml-1 mr-2",
+              size === 'sm' && "h-3 w-3",
+              size === 'md' && "h-4 w-4", 
+              size === 'lg' && "h-5 w-5"
+            )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

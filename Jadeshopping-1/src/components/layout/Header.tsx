@@ -55,10 +55,10 @@ const Header: React.FC = () => {
   };
 
   const navItems = [
-    { name: '首页', href: '/' },
-    { name: '商品', href: '/products' },
-    { name: '分类', href: '/categories' },
-    { name: '关于我们', href: '/about' },
+    { name: 'Home', href: '/' },
+    { name: 'Products', href: '/products' },
+    { name: 'Categories', href: '/categories' },
+    { name: 'About Us', href: '/about' },
   ];
 
   return (
@@ -68,11 +68,13 @@ const Header: React.FC = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-jade-500 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">玉</span>
-            </div>
+            <img 
+              src="/images/guaranteed-antiques-logo.png" 
+              alt="Guaranteed Antiques" 
+              className="h-8 w-8 object-contain"
+            />
             <span className="text-xl font-bold text-jade-600 hidden sm:block">
-              玉石轩
+              Guaranteed Antiques
             </span>
           </Link>
 
@@ -94,7 +96,7 @@ const Header: React.FC = () => {
             <form onSubmit={handleSearch} className="w-full">
               <Input
                 type="search"
-                placeholder="搜索玉石商品..."
+                placeholder="Search antique products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 icon={<Search className="h-4 w-4" />}
@@ -112,7 +114,7 @@ const Header: React.FC = () => {
               className="md:hidden"
               onClick={() => {
                 // 移动端搜索逻辑
-                const query = prompt('请输入搜索关键词：');
+                const query = prompt('Please enter search keywords:');
                 if (query?.trim()) {
                   navigate(`/search?q=${encodeURIComponent(query.trim())}`);
                 }
@@ -125,7 +127,7 @@ const Header: React.FC = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/favorites">
                 <Heart className="h-5 w-5" />
-                <span className="sr-only">收藏夹</span>
+                <span className="sr-only">Favorites</span>
               </Link>
             </Button>
 
@@ -159,7 +161,7 @@ const Header: React.FC = () => {
                     {cartItemCount}
                   </motion.span>
                 )}
-                <span className="sr-only">购物车</span>
+                <span className="sr-only">Shopping Cart</span>
               </Link>
             </Button>
 
@@ -206,7 +208,7 @@ const Header: React.FC = () => {
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <Settings className="h-4 w-4 mr-3" />
-                          个人中心
+                          Profile
                         </Link>
                         
                         <Link
@@ -215,7 +217,7 @@ const Header: React.FC = () => {
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <ShoppingCart className="h-4 w-4 mr-3" />
-                          我的订单
+                          My Orders
                         </Link>
                         
                         <Link
@@ -224,7 +226,7 @@ const Header: React.FC = () => {
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <Heart className="h-4 w-4 mr-3" />
-                          我的收藏
+                          My Favorites
                         </Link>
                         
                         <div className="border-t border-gray-100">
@@ -233,7 +235,7 @@ const Header: React.FC = () => {
                             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                           >
                             <LogOut className="h-4 w-4 mr-3" />
-                            退出登录
+                            Logout
                           </button>
                         </div>
                       </div>
@@ -244,7 +246,7 @@ const Header: React.FC = () => {
                  <Button variant="ghost" size="sm" asChild>
                    <Link to="/login" className="flex items-center">
                      <User className="h-5 w-5" />
-                     <span className="sr-only">登录</span>
+                     <span className="sr-only">Login</span>
                    </Link>
                  </Button>
                )}
@@ -285,7 +287,7 @@ const Header: React.FC = () => {
               <form onSubmit={handleSearch} className="pt-4 border-t">
                 <Input
                   type="search"
-                  placeholder="搜索玉石商品..."
+                  placeholder="Search antique products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   icon={<Search className="h-4 w-4" />}

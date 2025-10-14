@@ -199,9 +199,9 @@ const Sitemap: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>网站地图 - 玉石轩</title>
-        <meta name="description" content="玉石轩网站地图，快速导航到所有页面，包括商品浏览、用户中心、帮助支持等功能页面" />
-        <meta name="keywords" content="网站地图,导航,玉石商城,页面导航,网站结构" />
+        <title>Site Map - Guaranteed Antiques</title>
+        <meta name="description" content="Guaranteed Antiques site map, quick navigation to all pages including product browsing, user center, help support and other functional pages" />
+        <meta name="keywords" content="site map,navigation,antique marketplace,page navigation,website structure" />
       </Helmet>
 
       {/* 面包屑导航 */}
@@ -209,10 +209,10 @@ const Sitemap: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav className="flex items-center space-x-2 text-sm">
             <Link to="/" className="text-gray-500 hover:text-jade-600">
-              首页
+              Home
             </Link>
             <span className="text-gray-400">/</span>
-            <span className="text-gray-900">网站地图</span>
+            <span className="text-gray-900">Site Map</span>
           </nav>
         </div>
       </div>

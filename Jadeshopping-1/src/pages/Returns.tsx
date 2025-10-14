@@ -18,6 +18,7 @@ import {
   Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import ContentPageWrapper from '@/components/ContentPageWrapper';
 
 interface ReturnCondition {
   icon: React.ReactNode;
@@ -36,138 +37,150 @@ interface ReturnStep {
 }
 
 const Returns: React.FC = () => {
+  return (
+    <ContentPageWrapper
+      pageKey="returns"
+      defaultTitle="Returns & Exchanges - Guaranteed Antiques"
+      defaultDescription="Learn about our return and exchange policy for antique purchases. Easy returns within 30 days with professional authentication guarantee."
+    >
+      {(contentPage, loading) => <ReturnsContent contentPage={contentPage} />}
+    </ContentPageWrapper>
+  );
+};
+
+const ReturnsContent: React.FC<{ contentPage: any }> = ({ contentPage }) => {
   const [activeTab, setActiveTab] = useState('conditions');
 
   const returnConditions: ReturnCondition[] = [
     {
       icon: <RotateCcw className="w-8 h-8 text-jade-600" />,
-      title: '7天无理由退货',
-      description: '收货后7天内，商品完好无损，可申请无理由退货',
-      timeLimit: '7天',
-      applicable: ['所有现货商品', '未佩戴饰品', '包装完整', '附件齐全']
+      title: '7-Day No-Reason Return',
+      description: 'Within 7 days of receipt, items in perfect condition can be returned without reason',
+      timeLimit: '7 days',
+      applicable: ['All in-stock items', 'Unworn jewelry', 'Complete packaging', 'All accessories included']
     },
     {
       icon: <Shield className="w-8 h-8 text-jade-600" />,
-      title: '质量问题退换',
-      description: '商品存在质量问题，30天内可申请退换货',
-      timeLimit: '30天',
-      applicable: ['质量缺陷', '与描述不符', '运输损坏', '工艺问题']
+      title: 'Quality Issue Return/Exchange',
+      description: 'Items with quality issues can be returned or exchanged within 30 days',
+      timeLimit: '30 days',
+      applicable: ['Quality defects', 'Does not match description', 'Shipping damage', 'Craftsmanship issues']
     },
     {
       icon: <Package className="w-8 h-8 text-jade-600" />,
-      title: '尺寸不合适',
-      description: '饰品尺寸不合适，可在7天内申请换货',
-      timeLimit: '7天',
-      applicable: ['手镯尺寸', '戒指尺寸', '项链长度', '吊坠大小']
+      title: 'Size Not Suitable',
+      description: 'Jewelry with unsuitable size can be exchanged within 7 days',
+      timeLimit: '7 days',
+      applicable: ['Bracelet size', 'Ring size', 'Necklace length', 'Pendant size']
     },
     {
       icon: <AlertTriangle className="w-8 h-8 text-amber-500" />,
-      title: '特殊情况',
-      description: '定制商品、特价商品等特殊情况的退换货政策',
-      timeLimit: '具体商品而定',
-      applicable: ['定制商品仅质量问题可退', '特价商品不支持退换', '古董商品需专业鉴定']
+      title: 'Special Cases',
+      description: 'Return/exchange policy for custom items, sale items and other special cases',
+      timeLimit: 'Depends on specific item',
+      applicable: ['Custom items only for quality issues', 'Sale items not returnable', 'Antique items require professional authentication']
     }
   ];
 
   const returnSteps: ReturnStep[] = [
     {
       step: 1,
-      title: '申请退换货',
-      description: '登录账户，在订单页面点击"申请退换货"，填写退换货原因',
-      timeframe: '1分钟',
+      title: 'Apply for Return/Exchange',
+      description: 'Login to your account, click "Apply for Return/Exchange" on the order page, and fill in the reason',
+      timeframe: '1 minute',
       icon: <FileText className="w-6 h-6 text-jade-600" />
     },
     {
       step: 2,
-      title: '客服审核',
-      description: '客服团队会在24小时内审核您的申请，并与您确认退换货详情',
-      timeframe: '24小时内',
+      title: 'Customer Service Review',
+      description: 'Our customer service team will review your application within 24 hours and confirm return/exchange details',
+      timeframe: 'Within 24 hours',
       icon: <CheckCircle className="w-6 h-6 text-jade-600" />
     },
     {
       step: 3,
-      title: '寄回商品',
-      description: '按照客服提供的地址和要求，将商品安全包装后寄回',
-      timeframe: '3-5天',
+      title: 'Return Items',
+      description: 'Package items safely according to the address and requirements provided by customer service',
+      timeframe: '3-5 days',
       icon: <Package className="w-6 h-6 text-jade-600" />
     },
     {
       step: 4,
-      title: '商品检验',
-      description: '我们收到商品后，会进行质量检验和完整性确认',
-      timeframe: '1-2天',
+      title: 'Item Inspection',
+      description: 'After we receive the items, we will conduct quality inspection and completeness verification',
+      timeframe: '1-2 days',
       icon: <Shield className="w-6 h-6 text-jade-600" />
     },
     {
       step: 5,
-      title: '处理完成',
-      description: '退款将在3-7个工作日内到账，换货商品将重新发出',
-      timeframe: '3-7天',
+      title: 'Processing Complete',
+      description: 'Refunds will be credited within 3-7 business days, exchange items will be reshipped',
+      timeframe: '3-7 days',
       icon: <CreditCard className="w-6 h-6 text-jade-600" />
     }
   ];
 
   const qualityIssues = [
     {
-      issue: '商品破损',
-      description: '运输过程中造成的破损、裂纹等',
-      solution: '免费退换，运费由我们承担',
-      compensation: '可获得10%补偿金'
+      issue: 'Item Damage',
+      description: 'Damage, cracks, etc. caused during transportation',
+      solution: 'Free return/exchange, shipping costs covered by us',
+      compensation: '10% compensation available'
     },
     {
-      issue: '工艺缺陷',
-      description: '雕工不良、抛光不当、镶嵌松动等',
-      solution: '免费重新加工或更换',
-      compensation: '提供免费保养服务'
+      issue: 'Craftsmanship Defects',
+      description: 'Poor carving, improper polishing, loose settings, etc.',
+      solution: 'Free reprocessing or replacement',
+      compensation: 'Free maintenance service provided'
     },
     {
-      issue: '材质问题',
-      description: '与商品描述不符的材质或等级问题',
-      solution: '全额退款或换货',
-      compensation: '双倍差价补偿'
+      issue: 'Material Issues',
+      description: 'Material or grade issues that do not match product description',
+      solution: 'Full refund or exchange',
+      compensation: 'Double price difference compensation'
     },
     {
-      issue: '尺寸偏差',
-      description: '实际尺寸与标注尺寸相差超过5%',
-      solution: '免费调整尺寸或换货',
-      compensation: '免费调整服务'
+      issue: 'Size Deviation',
+      description: 'Actual size differs from marked size by more than 5%',
+      solution: 'Free size adjustment or exchange',
+      compensation: 'Free adjustment service'
     }
   ];
 
   const refundMethods = [
     {
-      method: '原路退回',
-      description: '退款将原路返回到您的付款账户',
-      timeframe: '3-7个工作日',
-      note: '推荐方式，最安全便捷'
+      method: 'Original Payment Method',
+      description: 'Refund will be returned to your original payment account',
+      timeframe: '3-7 business days',
+      note: 'Recommended method, safest and most convenient'
     },
     {
-      method: '银行转账',
-      description: '退款转账到您指定的银行账户',
-      timeframe: '1-3个工作日',
-      note: '需要提供准确的银行信息'
+      method: 'Bank Transfer',
+      description: 'Refund transferred to your designated bank account',
+      timeframe: '1-3 business days',
+      note: 'Accurate bank information required'
     },
     {
-      method: '余额退回',
-      description: '退款到您的账户余额，可用于下次购买',
-      timeframe: '即时到账',
-      note: '方便快捷，无手续费'
+      method: 'Account Balance',
+      description: 'Refund to your account balance, available for next purchase',
+      timeframe: 'Instant credit',
+      note: 'Convenient and fast, no handling fees'
     }
   ];
 
   const tabs = [
-    { id: 'conditions', name: '退换条件', icon: <Info className="w-4 h-4" /> },
-    { id: 'process', name: '退换流程', icon: <ArrowRight className="w-4 h-4" /> },
-    { id: 'quality', name: '质量问题', icon: <AlertTriangle className="w-4 h-4" /> },
-    { id: 'refund', name: '退款说明', icon: <CreditCard className="w-4 h-4" /> }
+    { id: 'conditions', name: 'Return Conditions', icon: <Info className="w-4 h-4" /> },
+    { id: 'process', name: 'Return Process', icon: <ArrowRight className="w-4 h-4" /> },
+    { id: 'quality', name: 'Quality Issues', icon: <AlertTriangle className="w-4 h-4" /> },
+    { id: 'refund', name: 'Refund Details', icon: <CreditCard className="w-4 h-4" /> }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>退换货政策 - 玉石轩</title>
-        <meta name="description" content="玉石轩退换货政策，包含退换货条件、流程、退款说明和质量问题处理方式" />
-        <meta name="keywords" content="退换货政策,退款流程,质量问题,售后服务" />
+        <title>Return & Exchange Policy - Jade Emporium</title>
+        <meta name="description" content="Jade Emporium return and exchange policy, including return conditions, process, refund details and quality issue handling" />
+        <meta name="keywords" content="return policy,refund process,quality issues,after-sales service" />
       </Helmet>
 
       {/* 面包屑导航 */}
@@ -175,10 +188,10 @@ const Returns: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav className="flex items-center space-x-2 text-sm">
             <Link to="/" className="text-gray-500 hover:text-jade-600">
-              首页
+              Home
             </Link>
             <span className="text-gray-400">/</span>
-            <span className="text-gray-900">退换货政策</span>
+            <span className="text-gray-900">Return & Exchange Policy</span>
           </nav>
         </div>
       </div>
@@ -188,10 +201,10 @@ const Returns: React.FC = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
             <RotateCcw className="w-12 h-12 text-jade-600 mr-3" />
-            <h1 className="text-4xl font-bold text-gray-900">退换货政策</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Return & Exchange Policy</h1>
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            为了保障您的权益，我们提供灵活便捷的退换货服务
+            To protect your rights, we provide flexible and convenient return and exchange services
           </p>
         </div>
 
@@ -233,7 +246,7 @@ const Returns: React.FC = () => {
                   </div>
                   <p className="text-gray-600 mb-4">{condition.description}</p>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">适用范围：</h4>
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Applicable Scope:</h4>
                     <div className="space-y-1">
                       {condition.applicable.map((item, itemIndex) => (
                         <div key={itemIndex} className="flex items-center">
@@ -251,12 +264,12 @@ const Returns: React.FC = () => {
               <div className="flex items-start">
                 <AlertTriangle className="w-6 h-6 text-amber-600 mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-semibold text-amber-800 mb-2">重要提醒</h3>
+                  <h3 className="text-lg font-semibold text-amber-800 mb-2">Important Reminders</h3>
                   <ul className="text-amber-700 text-sm space-y-1">
-                    <li>• 退换货商品必须保持原包装完整，包括商品标签、证书等</li>
-                    <li>• 个人定制商品除质量问题外，不支持退换货</li>
-                    <li>• 古董、收藏级商品需要专业机构鉴定后方可退换</li>
-                    <li>• 退换货运费：质量问题由我们承担，其他情况由客户承担</li>
+                    <li>• Return/exchange items must maintain original packaging, including product labels, certificates, etc.</li>
+                    <li>• Custom items do not support returns/exchanges except for quality issues</li>
+                    <li>• Antique and collector-grade items require professional authentication before return/exchange</li>
+                    <li>• Return/exchange shipping: Quality issues covered by us, other cases covered by customer</li>
                   </ul>
                 </div>
               </div>
@@ -268,7 +281,7 @@ const Returns: React.FC = () => {
         {activeTab === 'process' && (
           <div className="space-y-8">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">退换货流程</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Return/Exchange Process</h2>
               <div className="space-y-6">
                 {returnSteps.map((step, index) => (
                   <div key={index} className="flex items-start">
@@ -294,28 +307,28 @@ const Returns: React.FC = () => {
             </div>
 
             <div className="bg-jade-50 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">快速申请通道</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Application Channels</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-jade-600 text-white rounded-full flex items-center justify-center mx-auto mb-3">
                     <Phone className="w-8 h-8" />
                   </div>
-                  <h4 className="font-medium text-gray-900 mb-1">电话申请</h4>
+                  <h4 className="font-medium text-gray-900 mb-1">Phone Application</h4>
                   <p className="text-gray-600 text-sm">400-888-9999</p>
                 </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-jade-600 text-white rounded-full flex items-center justify-center mx-auto mb-3">
                     <MessageCircle className="w-8 h-8" />
                   </div>
-                  <h4 className="font-medium text-gray-900 mb-1">在线客服</h4>
-                  <p className="text-gray-600 text-sm">即时沟通</p>
+                  <h4 className="font-medium text-gray-900 mb-1">Online Customer Service</h4>
+                  <p className="text-gray-600 text-sm">Instant communication</p>
                 </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-jade-600 text-white rounded-full flex items-center justify-center mx-auto mb-3">
                     <FileText className="w-8 h-8" />
                   </div>
-                  <h4 className="font-medium text-gray-900 mb-1">在线申请</h4>
-                  <p className="text-gray-600 text-sm">登录账户操作</p>
+                  <h4 className="font-medium text-gray-900 mb-1">Online Application</h4>
+                  <p className="text-gray-600 text-sm">Login to account</p>
                 </div>
               </div>
             </div>
@@ -334,15 +347,15 @@ const Returns: React.FC = () => {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">问题描述：</p>
+                      <p className="text-sm text-gray-500 mb-1">Issue Description:</p>
                       <p className="text-gray-700 text-sm">{issue.description}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">解决方案：</p>
+                      <p className="text-sm text-gray-500 mb-1">Solution:</p>
                       <p className="text-jade-600 text-sm font-medium">{issue.solution}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">额外补偿：</p>
+                      <p className="text-sm text-gray-500 mb-1">Additional Compensation:</p>
                       <p className="text-green-600 text-sm font-medium">{issue.compensation}</p>
                     </div>
                   </div>
@@ -351,28 +364,28 @@ const Returns: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">质量问题处理承诺</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">Quality Issue Handling Commitment</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Shield className="w-8 h-8" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">100%负责</h4>
-                  <p className="text-gray-600 text-sm">对所有质量问题承担全部责任</p>
+                  <h4 className="font-semibold text-gray-900 mb-2">100% Responsibility</h4>
+                  <p className="text-gray-600 text-sm">Full responsibility for all quality issues</p>
                 </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Clock className="w-8 h-8" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">快速处理</h4>
-                  <p className="text-gray-600 text-sm">24小时内响应，3天内解决</p>
+                  <h4 className="font-semibold text-gray-900 mb-2">Fast Processing</h4>
+                  <p className="text-gray-600 text-sm">24-hour response, 3-day resolution</p>
                 </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Star className="w-8 h-8" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">超值补偿</h4>
-                  <p className="text-gray-600 text-sm">提供额外补偿和增值服务</p>
+                  <h4 className="font-semibold text-gray-900 mb-2">Premium Compensation</h4>
+                  <p className="text-gray-600 text-sm">Additional compensation and value-added services</p>
                 </div>
               </div>
             </div>
@@ -404,47 +417,47 @@ const Returns: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">退款政策说明</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">Refund Policy Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">退款范围</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">Refund Scope</h4>
                   <div className="space-y-2">
                     <div className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                      <span className="text-gray-700 text-sm">商品价款全额退还</span>
+                      <span className="text-gray-700 text-sm">Full product price refund</span>
                     </div>
                     <div className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                      <span className="text-gray-700 text-sm">质量问题运费退还</span>
+                      <span className="text-gray-700 text-sm">Shipping fee refund for quality issues</span>
                     </div>
                     <div className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                      <span className="text-gray-700 text-sm">包装费用退还</span>
+                      <span className="text-gray-700 text-sm">Packaging fee refund</span>
                     </div>
                     <div className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                      <span className="text-gray-700 text-sm">相关税费退还</span>
+                      <span className="text-gray-700 text-sm">Related tax refund</span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">特殊情况</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">Special Cases</h4>
                   <div className="space-y-2">
                     <div className="flex items-start">
                       <AlertTriangle className="w-4 h-4 text-amber-500 mr-2 mt-0.5" />
-                      <span className="text-gray-700 text-sm">定制商品仅质量问题可退款</span>
+                      <span className="text-gray-700 text-sm">Custom items refundable only for quality issues</span>
                     </div>
                     <div className="flex items-start">
                       <AlertTriangle className="w-4 h-4 text-amber-500 mr-2 mt-0.5" />
-                      <span className="text-gray-700 text-sm">特价商品不支持退款</span>
+                      <span className="text-gray-700 text-sm">Sale items not eligible for refund</span>
                     </div>
                     <div className="flex items-start">
                       <AlertTriangle className="w-4 h-4 text-amber-500 mr-2 mt-0.5" />
-                      <span className="text-gray-700 text-sm">使用优惠券的订单按实付金额退款</span>
+                      <span className="text-gray-700 text-sm">Orders with coupons refunded at actual paid amount</span>
                     </div>
                     <div className="flex items-start">
                       <AlertTriangle className="w-4 h-4 text-amber-500 mr-2 mt-0.5" />
-                      <span className="text-gray-700 text-sm">分期付款按比例退还</span>
+                      <span className="text-gray-700 text-sm">Installment payments refunded proportionally</span>
                     </div>
                   </div>
                 </div>
@@ -453,37 +466,37 @@ const Returns: React.FC = () => {
           </div>
         )}
 
-        {/* 联系我们 */}
+        {/* Contact Us */}
         <div className="mt-12 bg-gradient-to-r from-jade-600 to-jade-700 rounded-2xl p-8 text-white text-center">
-          <h3 className="text-2xl font-bold mb-4">需要帮助？</h3>
-          <p className="text-jade-100 mb-6">我们的客服团队随时为您处理退换货相关问题</p>
+          <h3 className="text-2xl font-bold mb-4">Need Help?</h3>
+          <p className="text-jade-100 mb-6">Our customer service team is ready to handle all your return and exchange questions</p>
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8">
             <div className="flex items-center">
               <Phone className="w-5 h-5 mr-2" />
               <div className="text-left">
-                <p className="font-medium">客服热线</p>
+                <p className="font-medium">Customer Service</p>
                 <p className="text-jade-100 text-sm">400-888-9999</p>
               </div>
             </div>
             <div className="flex items-center">
               <Mail className="w-5 h-5 mr-2" />
               <div className="text-left">
-                <p className="font-medium">邮箱咨询</p>
+                <p className="font-medium">Email Support</p>
                 <p className="text-jade-100 text-sm">service@yushixuan.com</p>
               </div>
             </div>
             <div className="flex items-center">
               <MessageCircle className="w-5 h-5 mr-2" />
               <div className="text-left">
-                <p className="font-medium">在线客服</p>
-                <p className="text-jade-100 text-sm">即时沟通</p>
+                <p className="font-medium">Live Chat</p>
+                <p className="text-jade-100 text-sm">Instant communication</p>
               </div>
             </div>
           </div>
           <div className="mt-6">
             <Link to="/contact">
               <Button className="bg-white text-jade-600 hover:bg-jade-50 px-8 py-3">
-                联系客服
+                Contact Support
               </Button>
             </Link>
           </div>

@@ -1,6 +1,6 @@
 import type { Product, Category, ShippingAddress, User, PaymentMethod, UserAddress, Coupon } from '@/types';
 
-// 模拟评价数据
+// Mock review data
 export interface Review {
   id: string;
   user_name: string;
@@ -11,7 +11,7 @@ export interface Review {
   created_at: string;
 }
 
-// 扩展商品类型以支持详情页面
+// Extended product type to support detail pages
 export interface ProductDetail extends Product {
   detailed_description: string;
   reviews: Review[];
@@ -21,51 +21,51 @@ export interface ProductDetail extends Product {
   related_products: string[];
 }
 
-// 模拟商品分类数据
+// Mock product category data
 export const mockCategories: Category[] = [
   {
     id: 'cat_1',
-    name: '和田玉',
+    name: 'Hetian Jade',
     slug: 'hetian-jade',
-    description: '新疆和田玉，温润如脂，千年传承的玉石精品',
+    description: 'Xinjiang Hetian jade, warm and lustrous as fat, a millennium-old heritage of premium jade',
     image_url: '/images/categories/hetian-jade.svg',
     icon: '🪨',
     color: '#F5F5DC',
     product_count: 15,
     is_featured: true,
     sort_order: 1,
-    tags: ['温润', '传统', '收藏', '高端'],
+    tags: ['Lustrous', 'Traditional', 'Collectible', 'Premium'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     subcategories: [
       {
         id: 'cat_1_1',
-        name: '和田白玉',
+        name: 'Hetian White Jade',
         slug: 'hetian-white-jade',
-        description: '纯净白玉，温润如脂',
+        description: 'Pure white jade, warm and lustrous as fat',
         image_url: '/images/categories/hetian-white-jade.svg',
         icon: '⚪',
         color: '#FFFFFF',
         product_count: 8,
         is_featured: true,
         sort_order: 1,
-        tags: ['白玉', '纯净', '经典'],
+        tags: ['White Jade', 'Pure', 'Classic'],
         parent_id: 'cat_1',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       },
       {
         id: 'cat_1_2',
-        name: '和田籽料',
+        name: 'Hetian Seed Jade',
         slug: 'hetian-seed-jade',
-        description: '天然籽料，皮色自然',
+        description: 'Natural seed jade with natural skin color',
         image_url: '/images/categories/hetian-seed-jade.svg',
         icon: '🌰',
         color: '#DEB887',
         product_count: 7,
         is_featured: false,
         sort_order: 2,
-        tags: ['籽料', '天然', '投资'],
+        tags: ['Seed Jade', 'Natural', 'Investment'],
         parent_id: 'cat_1',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -74,47 +74,47 @@ export const mockCategories: Category[] = [
   },
   {
     id: 'cat_2',
-    name: '翡翠',
+    name: 'Jadeite',
     slug: 'jadeite',
-    description: '缅甸翡翠，翠绿欲滴，东方绿宝石',
+    description: 'Myanmar jadeite, emerald green and lustrous, the oriental emerald',
     image_url: '/images/categories/jadeite.svg',
     icon: '💚',
     color: '#00FF7F',
     product_count: 12,
     is_featured: true,
     sort_order: 2,
-    tags: ['翠绿', '缅甸', '珠宝', '时尚'],
+    tags: ['Emerald Green', 'Myanmar', 'Jewelry', 'Fashion'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     subcategories: [
       {
         id: 'cat_2_1',
-        name: '翡翠手镯',
+        name: 'Jadeite Bracelet',
         slug: 'jadeite-bracelet',
-        description: '经典手镯，优雅大方',
+        description: 'Classic bracelet, elegant and graceful',
         image_url: '/images/categories/jadeite-bracelet.svg',
         icon: '💍',
         color: '#32CD32',
         product_count: 6,
         is_featured: true,
         sort_order: 1,
-        tags: ['手镯', '经典', '女性'],
+        tags: ['Bracelet', 'Classic', 'Women'],
         parent_id: 'cat_2',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       },
       {
         id: 'cat_2_2',
-        name: '翡翠吊坠',
+        name: 'Jadeite Pendant',
         slug: 'jadeite-pendant',
-        description: '精美吊坠，寓意吉祥',
+        description: 'Exquisite pendant with auspicious meaning',
         image_url: '/images/categories/jadeite-pendant.svg',
         icon: '🔮',
         color: '#228B22',
         product_count: 6,
         is_featured: false,
         sort_order: 2,
-        tags: ['吊坠', '精美', '寓意'],
+        tags: ['Pendant', 'Exquisite', 'Auspicious'],
         parent_id: 'cat_2',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -123,47 +123,47 @@ export const mockCategories: Category[] = [
   },
   {
     id: 'cat_3',
-    name: '玛瑙',
+    name: 'Agate',
     slug: 'agate',
-    description: '天然玛瑙，色彩斑斓，质地坚韧',
+    description: 'Natural agate with colorful patterns and durable texture',
     image_url: '/images/categories/agate.svg',
     icon: '🔴',
     color: '#FF6347',
     product_count: 18,
     is_featured: true,
     sort_order: 3,
-    tags: ['色彩', '天然', '多样', '装饰'],
+    tags: ['Colorful', 'Natural', 'Diverse', 'Decorative'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     subcategories: [
       {
         id: 'cat_3_1',
-        name: '南红玛瑙',
+        name: 'Nanhong Agate',
         slug: 'nanhong-agate',
-        description: '云南南红，红润如血',
+        description: 'Yunnan Nanhong, red as blood',
         image_url: '/images/categories/nanhong-agate.svg',
         icon: '❤️',
         color: '#DC143C',
         product_count: 10,
         is_featured: true,
         sort_order: 1,
-        tags: ['南红', '红润', '云南'],
+        tags: ['Nanhong', 'Red', 'Yunnan'],
         parent_id: 'cat_3',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       },
       {
         id: 'cat_3_2',
-        name: '战国红玛瑙',
+        name: 'Zhanguohong Agate',
         slug: 'zhanguohong-agate',
-        description: '战国红玛瑙，层次丰富',
+        description: 'Zhanguohong agate with rich layers',
         image_url: '/images/categories/zhanguohong-agate.svg',
         icon: '🟠',
         color: '#FF4500',
         product_count: 8,
         is_featured: false,
         sort_order: 2,
-        tags: ['战国红', '层次', '历史'],
+        tags: ['Zhanguohong', 'Layered', 'Historical'],
         parent_id: 'cat_3',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -172,47 +172,47 @@ export const mockCategories: Category[] = [
   },
   {
     id: 'cat_4',
-    name: '碧玉',
+    name: 'Jasper',
     slug: 'jasper',
-    description: '深绿碧玉，古朴典雅，君子之石',
+    description: 'Deep green jasper, ancient and elegant, the stone of gentlemen',
     image_url: '/images/categories/jasper.svg',
     icon: '🟢',
     color: '#006400',
     product_count: 9,
     is_featured: false,
     sort_order: 4,
-    tags: ['深绿', '古朴', '典雅', '君子'],
+    tags: ['Deep Green', 'Ancient', 'Elegant', 'Gentleman'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     subcategories: [
       {
         id: 'cat_4_1',
-        name: '新疆碧玉',
+        name: 'Xinjiang Jasper',
         slug: 'xinjiang-jasper',
-        description: '新疆碧玉，质地细腻',
+        description: 'Xinjiang jasper with fine texture',
         image_url: '/images/categories/xinjiang-jasper.svg',
         icon: '🌿',
         color: '#2E8B57',
         product_count: 5,
         is_featured: false,
         sort_order: 1,
-        tags: ['新疆', '细腻', '传统'],
+        tags: ['Xinjiang', 'Fine', 'Traditional'],
         parent_id: 'cat_4',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       },
       {
         id: 'cat_4_2',
-        name: '俄罗斯碧玉',
+        name: 'Russian Jasper',
         slug: 'russian-jasper',
-        description: '俄罗斯碧玉，颜色浓郁',
+        description: 'Russian jasper with rich color',
         image_url: '/images/categories/russian-jasper.svg',
         icon: '🍃',
         color: '#228B22',
         product_count: 4,
         is_featured: false,
         sort_order: 2,
-        tags: ['俄罗斯', '浓郁', '现代'],
+        tags: ['Russian', 'Rich', 'Modern'],
         parent_id: 'cat_4',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -221,97 +221,97 @@ export const mockCategories: Category[] = [
   },
   {
     id: 'cat_5',
-    name: '青玉',
+    name: 'Celadon Jade',
     slug: 'celadon-jade',
-    description: '青玉温润，色泽淡雅，文人雅士之选',
+    description: 'Celadon jade with warm luster and elegant color, the choice of scholars',
     image_url: '/images/categories/celadon-jade.svg',
     icon: '🟦',
     color: '#4682B4',
     product_count: 7,
     is_featured: false,
     sort_order: 5,
-    tags: ['青色', '淡雅', '文人', '雅致'],
+    tags: ['Celadon', 'Elegant', 'Scholar', 'Refined'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat_6',
-    name: '黄玉',
+    name: 'Yellow Jade',
     slug: 'yellow-jade',
-    description: '黄玉贵重，金黄色泽，富贵吉祥',
+    description: 'Precious yellow jade with golden luster, symbolizing wealth and prosperity',
     image_url: '/images/categories/yellow-jade.svg',
     icon: '🟡',
     color: '#FFD700',
     product_count: 5,
     is_featured: true,
     sort_order: 6,
-    tags: ['黄色', '贵重', '富贵', '吉祥'],
+    tags: ['Yellow', 'Precious', 'Wealth', 'Prosperity'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat_7',
-    name: '墨玉',
+    name: 'Black Jade',
     slug: 'black-jade',
-    description: '墨玉深沉，黑如墨染，神秘典雅',
+    description: 'Deep black jade, dark as ink, mysterious and elegant',
     image_url: '/images/categories/black-jade.svg',
     icon: '⚫',
     color: '#2F4F4F',
     product_count: 6,
     is_featured: false,
     sort_order: 7,
-    tags: ['黑色', '深沉', '神秘', '典雅'],
+    tags: ['Black', 'Deep', 'Mysterious', 'Elegant'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat_8',
-    name: '糖玉',
+    name: 'Sugar Jade',
     slug: 'sugar-jade',
-    description: '糖玉甜美，色如红糖，温暖人心',
+    description: 'Sweet sugar jade, brown as sugar, warm and heartwarming',
     image_url: '/images/categories/sugar-jade.svg',
     icon: '🟤',
     color: '#D2691E',
     product_count: 4,
     is_featured: false,
     sort_order: 8,
-    tags: ['糖色', '甜美', '温暖', '独特'],
+    tags: ['Sugar Color', 'Sweet', 'Warm', 'Unique'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat_9',
-    name: '岫玉',
+    name: 'Xiuyan Jade',
     slug: 'xiuyan-jade',
-    description: '岫岩玉石，历史悠久，中华瑰宝',
+    description: 'Xiuyan jade with long history, a Chinese treasure',
     image_url: '/images/categories/xiuyan-jade.svg',
     icon: '🟩',
     color: '#90EE90',
     product_count: 8,
     is_featured: false,
     sort_order: 9,
-    tags: ['岫岩', '历史', '瑰宝', '传统'],
+    tags: ['Xiuyan', 'Historical', 'Treasure', 'Traditional'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat_10',
-    name: '独山玉',
+    name: 'Dushan Jade',
     slug: 'dushan-jade',
-    description: '独山玉石，色彩丰富，河南名玉',
+    description: 'Dushan jade with rich colors, a famous jade from Henan',
     image_url: '/images/categories/dushan-jade.svg',
     icon: '🌈',
     color: '#9370DB',
     product_count: 6,
     is_featured: false,
     sort_order: 10,
-    tags: ['独山', '丰富', '河南', '名玉'],
+    tags: ['Dushan', 'Rich', 'Henan', 'Famous'],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
 ];
 
-// 分类统计数据
+// Category statistics data
 export const mockCategoryStats = {
   total_categories: mockCategories.length,
   featured_categories: mockCategories.filter(cat => cat.is_featured).length,
@@ -321,118 +321,118 @@ export const mockCategoryStats = {
   ),
 };
 
-// 模拟评价数据
+// Mock review data
 export const mockReviews: Record<string, Review[]> = {
   prod_1: [
     {
       id: 'review_1',
-      user_name: '张女士',
+      user_name: 'Sarah Zhang',
       user_avatar: '/images/avatars/user1.svg',
       rating: 5,
-      comment: '观音雕刻得非常精美，玉质温润，佩戴很舒适。包装也很精美，非常满意！',
+      comment: 'The Guanyin carving is exquisitely beautiful, the jade is warm and lustrous, very comfortable to wear. The packaging is also very elegant, extremely satisfied!',
       created_at: '2024-01-15T10:30:00Z',
     },
     {
       id: 'review_2',
-      user_name: '李先生',
+      user_name: 'Michael Li',
       rating: 4,
-      comment: '和田玉的质量很好，雕工也不错，就是价格稍微有点高。',
+      comment: 'The quality of Hetian jade is excellent, and the craftsmanship is also good, just the price is a bit high.',
       created_at: '2024-01-10T14:20:00Z',
     },
     {
       id: 'review_3',
-      user_name: '王女士',
+      user_name: 'Emily Wang',
       rating: 5,
-      comment: '买来送给妈妈的，她很喜欢。观音造型寓意很好，玉质也很温润。',
+      comment: 'Bought this as a gift for my mother, she loves it very much. The Guanyin design has great meaning, and the jade is very warm and lustrous.',
       created_at: '2024-01-08T16:45:00Z',
     },
   ],
   prod_2: [
     {
       id: 'review_4',
-      user_name: '陈女士',
+      user_name: 'Grace Chen',
       rating: 5,
-      comment: '翡翠手镯颜色很正，水头也很好，戴上手很漂亮。卖家服务也很好。',
+      comment: 'The jadeite bracelet has excellent color and transparency, looks beautiful when worn. The seller service is also very good.',
       created_at: '2024-01-12T09:15:00Z',
     },
     {
       id: 'review_5',
-      user_name: '刘女士',
+      user_name: 'Jennifer Liu',
       rating: 4,
-      comment: '手镯质量不错，就是尺寸稍微有点大，不过还是很喜欢的。',
+      comment: 'The bracelet quality is good, just the size is slightly large, but I still love it very much.',
       created_at: '2024-01-05T11:30:00Z',
     },
   ],
   prod_3: [
     {
       id: 'review_6',
-      user_name: '赵先生',
+      user_name: 'David Zhao',
       rating: 5,
-      comment: '南红玛瑙颜色很正，是天然的，收藏价值很高。包装很用心。',
+      comment: 'The Nanhong agate has excellent color, it is natural, with high collectible value. The packaging is very thoughtful.',
       created_at: '2024-01-18T13:20:00Z',
     },
   ],
   prod_4: [
     {
       id: 'review_7',
-      user_name: '孙女士',
+      user_name: 'Linda Sun',
       rating: 4,
-      comment: '平安扣做工精细，碧玉的颜色很深绿，很有质感。',
+      comment: 'The peace buckle is finely crafted, the jasper color is deep green, very textured.',
       created_at: '2024-01-14T15:10:00Z',
     },
   ],
   prod_5: [
     {
       id: 'review_8',
-      user_name: '周先生',
+      user_name: 'Robert Zhou',
       rating: 5,
-      comment: '籽料原石品质很好，皮色自然，是收藏的好选择。',
+      comment: 'The seed material raw stone is of excellent quality, natural skin color, a great choice for collection.',
       created_at: '2024-01-16T12:00:00Z',
     },
   ],
   prod_6: [
     {
       id: 'review_9',
-      user_name: '吴女士',
+      user_name: 'Helen Wu',
       rating: 5,
-      comment: '如意吊坠雕工精美，翡翠质量很好，寓意也很好。',
+      comment: 'The Ruyi pendant is exquisitely carved, the jadeite quality is excellent, and the meaning is very auspicious.',
       created_at: '2024-01-11T10:45:00Z',
     },
   ],
 };
 
-// 模拟商品详情数据
+// Mock product detail data
 export const mockProductDetails: Record<string, ProductDetail> = {
   prod_1: {
     id: 'prod_1',
-    name: '和田白玉观音吊坠',
-    description: '精选新疆和田白玉，手工雕刻观音造型，寓意平安吉祥。玉质温润细腻，雕工精美，是佩戴和收藏的佳品。',
+    name: 'Hetian White Jade Guanyin Pendant',
+    description: 'Selected Xinjiang Hetian white jade, hand-carved Guanyin design, symbolizing peace and good fortune. The jade is warm and delicate, with exquisite craftsmanship, perfect for wearing and collecting.',
     detailed_description: `
-      <h3>商品详情</h3>
-      <p>这款和田白玉观音吊坠采用优质新疆和田白玉精心雕刻而成，观音造型庄严慈祥，寓意平安吉祥、护佑平安。</p>
+      <h3>Product Details</h3>
+      <p>This Hetian white jade Guanyin pendant is carefully carved from premium Xinjiang Hetian white jade. The Guanyin design is solemn and compassionate, symbolizing peace, good fortune, and protection.</p>
       
-      <h4>材质特点</h4>
+      <h4>Material Features</h4>
       <ul>
-        <li>选用新疆和田白玉，玉质温润细腻</li>
-        <li>天然玉石，无人工染色</li>
-        <li>质地坚韧，光泽柔和</li>
-        <li>具有良好的保值收藏价值</li>
+        <li>Selected Xinjiang Hetian white jade, warm and delicate texture</li>
+        <li>Natural jade stone, no artificial coloring</li>
+        <li>Durable texture with soft luster</li>
+        <li>Excellent value retention and collectible worth</li>
       </ul>
       
-      <h4>工艺特色</h4>
+      <h4>Craftsmanship</h4>
       <ul>
-        <li>传统手工雕刻工艺</li>
-        <li>观音造型生动传神</li>
-        <li>细节处理精致入微</li>
-        <li>抛光工艺精良，手感舒适</li>
+        <li>Traditional hand-carving techniques</li>
+        <li>Vivid and lifelike Guanyin design</li>
+        <li>Exquisite attention to detail</li>
+        <li>Superior polishing with comfortable feel</li>
       </ul>
       
-      <h4>佩戴建议</h4>
+      <h4>Wearing Recommendations</h4>
       <ul>
-        <li>适合日常佩戴，彰显品味</li>
-        <li>避免与硬物碰撞</li>
-        <li>定期清洁保养</li>
-        <li>可搭配各种服饰风格</li>
+        <li>Suitable for daily wear, showcasing taste</li>
+        <li>Avoid collision with hard objects</li>
+        <li>Regular cleaning and maintenance</li>
+        <li>Complements various clothing styles</li>
       </ul>
     `,
     price: 2888,
@@ -447,11 +447,11 @@ export const mockProductDetails: Record<string, ProductDetail> = {
       '/images/products/hetian-guanyin-pendant.svg',
     ],
     specifications: {
-      material: '新疆和田白玉',
+      material: 'Xinjiang Hetian White Jade',
       size: '45mm x 30mm x 8mm',
       weight: '25g',
-      craft: '手工雕刻',
-      color: '白色',
+      craft: 'Hand Carved',
+      color: 'White',
       hardness: '6-6.5',
     },
     reviews: mockReviews.prod_1,
@@ -465,34 +465,33 @@ export const mockProductDetails: Record<string, ProductDetail> = {
   },
   prod_2: {
     id: 'prod_2',
-    name: '缅甸翡翠手镯',
-    description: '天然缅甸翡翠手镯，色泽鲜艳，水头充足。内径适中，佩戴舒适，是女性朋友的理想选择。',
+    name: 'Myanmar Jadeite Bracelet',
+    description: 'Natural Myanmar jadeite bracelet with vibrant color and fine texture',
     detailed_description: `
-      <h3>商品详情</h3>
-      <p>这款缅甸翡翠手镯选用天然A货翡翠制作，色泽鲜艳，水头充足，是女性朋友的理想饰品。</p>
+      <h3>Product Details</h3>
+      <p>This Myanmar jadeite bracelet is crafted from natural jadeite with vibrant color and fine texture. Jadeite is known as the "King of Jade" and has high collectible value.</p>
       
-      <h4>翡翠特点</h4>
+      <h4>Jadeite Features</h4>
       <ul>
-        <li>天然缅甸翡翠A货</li>
-        <li>颜色鲜艳，水头充足</li>
-        <li>质地细腻，透明度高</li>
-        <li>具有很高的收藏价值</li>
+        <li>Natural Myanmar jadeite of superior quality</li>
+        <li>Vibrant color with high transparency</li>
+        <li>Fine texture with warm touch</li>
+        <li>High collectible value</li>
       </ul>
       
-      <h4>工艺特色</h4>
+      <h4>Craftsmanship</h4>
       <ul>
-        <li>传统圆条手镯工艺</li>
-        <li>内径打磨光滑</li>
-        <li>厚度均匀，佩戴舒适</li>
-        <li>抛光精细，光泽度高</li>
+        <li>Traditional craftsmanship with meticulous workmanship</li>
+        <li>Smooth and rounded, comfortable to wear</li>
+        <li>Standard size suitable for most people</li>
       </ul>
       
-      <h4>佩戴保养</h4>
+      <h4>Care and Maintenance</h4>
       <ul>
-        <li>适合日常佩戴</li>
-        <li>避免剧烈运动时佩戴</li>
-        <li>定期用软布擦拭</li>
-        <li>避免接触化学物品</li>
+        <li>Avoid collision with hard objects</li>
+        <li>Regular cleaning and maintenance</li>
+        <li>Avoid contact with chemicals</li>
+        <li>Store properly to prevent damage</li>
       </ul>
     `,
     price: 15800,
@@ -506,13 +505,13 @@ export const mockProductDetails: Record<string, ProductDetail> = {
       '/images/products/jadeite-bracelet.svg',
     ],
     specifications: {
-      material: '缅甸天然翡翠',
+      material: 'Myanmar Natural Jadeite',
       inner_diameter: '58mm',
       width: '12mm',
       thickness: '8mm',
       weight: '45g',
-      grade: 'A货',
-      transparency: '半透明',
+      grade: 'Grade A',
+      transparency: 'Semi-transparent',
     },
     reviews: mockReviews.prod_2,
     rating: 4.5,
@@ -525,26 +524,26 @@ export const mockProductDetails: Record<string, ProductDetail> = {
   },
   prod_3: {
     id: 'prod_3',
-    name: '南红玛瑙原石摆件',
-    description: '天然南红玛瑙原石，色泽红润，质地细腻。适合收藏和装饰，具有很高的观赏价值。',
+    name: 'Nanhong Agate Raw Stone Ornament',
+    description: 'Natural Nanhong agate raw stone with lustrous red color and fine texture. Perfect for collection and decoration with high ornamental value.',
     detailed_description: `
-      <h3>商品详情</h3>
-      <p>这款南红玛瑙原石摆件选用云南保山优质南红玛瑙制作，色泽红润，质地细腻，是收藏和装饰的佳品。</p>
+      <h3>Product Details</h3>
+      <p>This Nanhong agate raw stone ornament is made from premium Yunnan Baoshan Nanhong agate with lustrous red color and fine texture, making it an excellent piece for collection and decoration.</p>
       
-      <h4>南红特点</h4>
+      <h4>Nanhong Features</h4>
       <ul>
-        <li>云南保山南红玛瑙</li>
-        <li>颜色红润自然</li>
-        <li>质地细腻温润</li>
-        <li>具有很高的收藏价值</li>
+        <li>Yunnan Baoshan Nanhong agate</li>
+        <li>Natural lustrous red color</li>
+        <li>Fine and warm texture</li>
+        <li>High collectible value</li>
       </ul>
       
-      <h4>观赏价值</h4>
+      <h4>Ornamental Value</h4>
       <ul>
-        <li>天然纹理美观</li>
-        <li>色彩层次丰富</li>
-        <li>适合案头摆放</li>
-        <li>寓意吉祥如意</li>
+        <li>Beautiful natural patterns</li>
+        <li>Rich color layers</li>
+        <li>Perfect for desk display</li>
+        <li>Symbolizes good fortune</li>
       </ul>
     `,
     price: 680,
@@ -557,11 +556,11 @@ export const mockProductDetails: Record<string, ProductDetail> = {
       '/images/products/agate-nanhong-ornament.svg',
     ],
     specifications: {
-      material: '天然南红玛瑙',
+      material: 'Natural Nanhong Agate',
       size: '120mm x 80mm x 60mm',
       weight: '350g',
-      origin: '云南保山',
-      color: '红色',
+      origin: 'Yunnan Baoshan',
+      color: 'Red',
       hardness: '6.5-7',
     },
     reviews: mockReviews.prod_3,
@@ -575,18 +574,18 @@ export const mockProductDetails: Record<string, ProductDetail> = {
   },
   prod_4: {
     id: 'prod_4',
-    name: '碧玉平安扣',
-    description: '精选新疆碧玉制作的平安扣，寓意平安如意。玉质细腻，颜色深绿，是传统的吉祥饰品。',
+    name: 'Jasper Peace Buckle',
+    description: 'Premium Xinjiang jasper peace buckle symbolizing peace and good fortune. Fine jade texture with deep green color, a traditional auspicious ornament.',
     detailed_description: `
-      <h3>商品详情</h3>
-      <p>这款碧玉平安扣选用新疆优质碧玉制作，寓意平安如意，是传统的吉祥饰品。</p>
+      <h3>Product Details</h3>
+      <p>This jasper peace buckle is crafted from premium Xinjiang jasper, symbolizing peace and good fortune, making it a traditional auspicious ornament.</p>
       
-      <h4>碧玉特点</h4>
+      <h4>Jasper Features</h4>
       <ul>
-        <li>新疆优质碧玉</li>
-        <li>颜色深绿均匀</li>
-        <li>质地细腻温润</li>
-        <li>传统吉祥寓意</li>
+        <li>Premium Xinjiang jasper</li>
+        <li>Uniform deep green color</li>
+        <li>Fine and warm texture</li>
+        <li>Traditional auspicious meaning</li>
       </ul>
     `,
     price: 1280,
@@ -599,11 +598,11 @@ export const mockProductDetails: Record<string, ProductDetail> = {
       '/images/products/jasper-peace-buckle.svg',
     ],
     specifications: {
-      material: '新疆碧玉',
+      material: 'Xinjiang Jasper',
       diameter: '35mm',
       thickness: '6mm',
       weight: '18g',
-      color: '深绿色',
+      color: 'Deep Green',
       hardness: '6-6.5',
     },
     reviews: mockReviews.prod_4,
@@ -617,18 +616,18 @@ export const mockProductDetails: Record<string, ProductDetail> = {
   },
   prod_5: {
     id: 'prod_5',
-    name: '和田玉籽料原石',
-    description: '天然和田玉籽料原石，皮色自然，玉质温润。适合雕刻和收藏，具有很高的投资价值。',
+    name: 'Hetian Jade Seed Material Raw Stone',
+    description: 'Natural Hetian jade seed material raw stone with natural skin color and warm jade texture. Perfect for carving and collection with high investment value.',
     detailed_description: `
-      <h3>商品详情</h3>
-      <p>这款和田玉籽料原石来自新疆和田，皮色自然，玉质温润，是雕刻和收藏的上佳选择。</p>
+      <h3>Product Details</h3>
+      <p>This Hetian jade seed material raw stone comes from Xinjiang Hetian with natural skin color and warm jade texture, making it an excellent choice for carving and collection.</p>
       
-      <h4>籽料特点</h4>
+      <h4>Seed Material Features</h4>
       <ul>
-        <li>新疆和田籽料</li>
-        <li>皮色自然美观</li>
-        <li>玉质温润细腻</li>
-        <li>投资收藏价值高</li>
+        <li>Xinjiang Hetian seed material</li>
+        <li>Natural beautiful skin color</li>
+        <li>Warm and fine jade texture</li>
+        <li>High investment and collectible value</li>
       </ul>
     `,
     price: 8800,
@@ -641,11 +640,11 @@ export const mockProductDetails: Record<string, ProductDetail> = {
       '/images/products/hetian-seed-jade.svg',
     ],
     specifications: {
-      material: '和田玉籽料',
+      material: 'Hetian Jade Seed Material',
       size: '65mm x 45mm x 30mm',
       weight: '120g',
-      origin: '新疆和田',
-      skin_color: '天然皮色',
+      origin: 'Xinjiang Hetian',
+      skin_color: 'Natural Skin Color',
       hardness: '6-6.5',
     },
     reviews: mockReviews.prod_5,
@@ -659,18 +658,18 @@ export const mockProductDetails: Record<string, ProductDetail> = {
   },
   prod_6: {
     id: 'prod_6',
-    name: '翡翠如意吊坠',
-    description: '缅甸翡翠雕刻如意造型，寓意心想事成。翠绿色泽，水头充足，雕工精细。',
+    name: 'Jadeite Ruyi Pendant',
+    description: 'Myanmar jadeite carved in Ruyi shape, symbolizing wishes come true. Emerald green color with excellent transparency and fine craftsmanship.',
     detailed_description: `
-      <h3>商品详情</h3>
-      <p>这款翡翠如意吊坠采用缅甸翡翠雕刻如意造型，寓意心想事成，是佩戴和收藏的佳品。</p>
+      <h3>Product Details</h3>
+      <p>This jadeite Ruyi pendant is carved from Myanmar jadeite in the traditional Ruyi shape, symbolizing wishes come true, making it an excellent piece for wearing and collection.</p>
       
-      <h4>翡翠特点</h4>
+      <h4>Jadeite Features</h4>
       <ul>
-        <li>缅甸天然翡翠</li>
-        <li>翠绿色泽鲜艳</li>
-        <li>水头充足透明</li>
-        <li>如意造型寓意好</li>
+        <li>Myanmar natural jadeite</li>
+        <li>Vibrant emerald green color</li>
+        <li>Excellent transparency</li>
+        <li>Ruyi shape with auspicious meaning</li>
       </ul>
     `,
     price: 4200,
@@ -683,12 +682,12 @@ export const mockProductDetails: Record<string, ProductDetail> = {
       '/images/products/jadeite-ruyi-pendant.svg',
     ],
     specifications: {
-      material: '缅甸翡翠',
+      material: 'Myanmar Jadeite',
       size: '50mm x 25mm x 10mm',
       weight: '28g',
-      craft: '手工雕刻',
-      color: '翠绿色',
-      grade: 'A货',
+      craft: 'Hand Carved',
+      color: 'Emerald Green',
+      grade: 'Grade A',
     },
     reviews: mockReviews.prod_6,
     rating: 5.0,
@@ -701,74 +700,74 @@ export const mockProductDetails: Record<string, ProductDetail> = {
   },
 };
 
-// 模拟商品数据（保持向后兼容）
+// Mock product data (maintaining backward compatibility)
 export const mockProducts: Product[] = Object.values(mockProductDetails);
 
-// 轮播图数据
+// Banner carousel data
 export const mockBanners = [
   {
     id: 'banner_1',
-    title: '和田玉精品',
-    subtitle: '千年传承 · 温润如玉',
+    title: 'Premium Antiques',
+    subtitle: 'Timeless Heritage · Exquisite Craftsmanship',
     image: '/images/banners/hetian-jade-banner.svg',
     link: '/products?category=cat_1',
-    buttonText: '立即选购',
+    buttonText: 'Shop Now',
   },
   {
     id: 'banner_2',
-    title: '翡翠珠宝',
-    subtitle: '缅甸精品 · 绿意盎然',
+    title: 'Jade Jewelry',
+    subtitle: 'Authentic Pieces · Natural Beauty',
     image: '/images/banners/jadeite-jewelry-banner.svg',
     link: '/products?category=cat_2',
-    buttonText: '查看详情',
+    buttonText: 'View Details',
   },
   {
     id: 'banner_3',
-    title: '玛瑙收藏',
-    subtitle: '南红精品 · 色泽艳丽',
+    title: 'Collectible Treasures',
+    subtitle: 'Rare Finds · Vibrant Colors',
     image: '/images/banners/agate-collection-banner.svg',
     link: '/products?category=cat_3',
-    buttonText: '探索收藏',
+    buttonText: 'Explore Collection',
   },
   {
     id: 'banner_4',
-    title: '碧玉艺术',
-    subtitle: '和田碧玉 · 温润典雅',
+    title: 'Artistic Masterpieces',
+    subtitle: 'Fine Craftsmanship · Elegant Design',
     image: '/images/banners/jasper-art-banner.svg',
     link: '/products?category=cat_4',
-    buttonText: '精品鉴赏',
+    buttonText: 'Discover Art',
   },
   {
     id: 'banner_5',
-    title: '玉石文化',
-    subtitle: '千年传承 · 君子如玉',
+    title: 'Cultural Heritage',
+    subtitle: 'Ancient Wisdom · Timeless Beauty',
     image: '/images/banners/jade-culture-banner.svg',
     link: '/products',
-    buttonText: '文化传承',
+    buttonText: 'Cultural Legacy',
   },
 ];
 
-// 模拟收货地址数据
+// Mock shipping address data
 export const mockAddresses: ShippingAddress[] = [
   {
     id: 'addr_1',
-    full_name: '张三',
+    full_name: 'Zhang San',
     phone: '13800138000',
-    street: '朝阳区建国门外大街1号国贸大厦A座1001室',
-    city: '北京市',
-    state: '北京市',
-    country: '中国',
+    street: 'Room 1001, Tower A, China World Trade Center, No.1 Jianguomenwai Avenue, Chaoyang District',
+    city: 'Beijing',
+    state: 'Beijing',
+    country: 'China',
     postal_code: '100020',
     is_default: true,
   },
   {
     id: 'addr_2',
-    full_name: '李四',
+    full_name: 'Li Si',
     phone: '13900139000',
-    street: '浦东新区陆家嘴环路1000号恒生银行大厦20楼',
-    city: '上海市',
-    state: '上海市',
-    country: '中国',
+    street: '20F, Hang Seng Bank Tower, 1000 Lujiazui Ring Road, Pudong New Area',
+    city: 'Shanghai',
+    state: 'Shanghai',
+    country: 'China',
     postal_code: '200120',
     is_default: false,
   },
@@ -776,12 +775,12 @@ export const mockAddresses: ShippingAddress[] = [
 
 
 
-// 模拟用户数据
+// Mock user data
 export const mockUsers: User[] = [
   {
     id: '1',
     email: 'admin@jade.com',
-    full_name: '管理员',
+    full_name: 'Administrator',
     username: 'admin',
     phone: '13800138000',
     avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
@@ -792,7 +791,7 @@ export const mockUsers: User[] = [
   {
     id: '2',
     email: 'user@jade.com',
-    full_name: '张三',
+    full_name: 'Zhang San',
     username: 'zhangsan',
     phone: '13900139000',
     avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhangsan',
@@ -803,7 +802,7 @@ export const mockUsers: User[] = [
   {
     id: '3',
     email: 'test@jade.com',
-    full_name: '李四',
+    full_name: 'Li Si',
     username: 'lisi',
     phone: '13700137000',
     avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lisi',
@@ -813,16 +812,16 @@ export const mockUsers: User[] = [
   },
 ];
 
-// 模拟支付方式数据
+// Mock payment method data
 export const mockPaymentMethods: PaymentMethod[] = [
   {
     id: 'paypal',
     name: 'PayPal',
     type: 'paypal',
     icon: '💳',
-    description: '使用PayPal账户安全支付，支持全球主要货币',
+    description: 'Secure payment using PayPal account, supports major global currencies',
     enabled: true,
-    processing_fee: 0.035, // 3.5%手续费
+    processing_fee: 0.035, // 3.5% processing fee
     min_amount: 1,
     max_amount: 50000,
   },
@@ -831,7 +830,7 @@ export const mockPaymentMethods: PaymentMethod[] = [
     name: 'Apple Pay',
     type: 'apple_pay',
     icon: '🍎',
-    description: '使用Touch ID或Face ID快速安全支付',
+    description: 'Fast and secure payment using Touch ID or Face ID',
     enabled: true,
     processing_fee: 0,
     min_amount: 1,
@@ -842,7 +841,7 @@ export const mockPaymentMethods: PaymentMethod[] = [
     name: 'Google Pay',
     type: 'google_pay',
     icon: '🔵',
-    description: '使用Google账户快速支付，安全便捷',
+    description: 'Fast payment using Google account, secure and convenient',
     enabled: true,
     processing_fee: 0,
     min_amount: 1,
@@ -850,32 +849,32 @@ export const mockPaymentMethods: PaymentMethod[] = [
   },
   {
     id: 'credit_card',
-    name: '信用卡支付',
+    name: 'Credit Card Payment',
     type: 'credit_card',
     icon: '💳',
-    description: '支持Visa、MasterCard、银联等主要信用卡',
+    description: 'Supports major credit cards including Visa, MasterCard, and UnionPay',
     enabled: true,
-    processing_fee: 0.025, // 2.5%手续费
+    processing_fee: 0.025, // 2.5% processing fee
     min_amount: 1,
     max_amount: 100000,
   },
   {
     id: 'bank_card',
-    name: '银行卡支付',
+    name: 'Bank Card Payment',
     type: 'bank_card',
     icon: '🏦',
-    description: '支持储蓄卡和借记卡在线支付',
+    description: 'Supports debit and savings card online payments',
     enabled: true,
-    processing_fee: 0.01, // 1%手续费
+    processing_fee: 0.01, // 1% processing fee
     min_amount: 1,
     max_amount: 50000,
   },
   {
     id: 'balance',
-    name: '余额支付',
+    name: 'Balance Payment',
     type: 'balance',
     icon: '💰',
-    description: '使用账户余额支付，快速便捷无手续费',
+    description: 'Pay with account balance, fast and convenient with no processing fees',
     enabled: true,
     processing_fee: 0,
     min_amount: 0.01,
@@ -883,17 +882,17 @@ export const mockPaymentMethods: PaymentMethod[] = [
   },
 ];
 
-// 模拟用户地址数据
+// Mock user address data
 export const mockUserAddresses: UserAddress[] = [
   {
     id: 'addr_1',
     user_id: '1',
-    name: '张三',
+    name: 'Zhang San',
     phone: '13800138000',
-    province: '北京市',
-    city: '北京市',
-    district: '朝阳区',
-    address: '建国门外大街1号国贸大厦A座1001室',
+    province: 'Beijing',
+    city: 'Beijing',
+    district: 'Chaoyang District',
+    address: 'Room 1001, Tower A, China World Trade Center, No.1 Jianguomenwai Avenue',
     is_default: true,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
@@ -901,12 +900,12 @@ export const mockUserAddresses: UserAddress[] = [
   {
     id: 'addr_2',
     user_id: '1',
-    name: '李四',
+    name: 'Li Si',
     phone: '13900139000',
-    province: '上海市',
-    city: '上海市',
-    district: '浦东新区',
-    address: '陆家嘴环路1000号恒生银行大厦20楼',
+    province: 'Shanghai',
+    city: 'Shanghai',
+    district: 'Pudong New Area',
+    address: '20F, Hang Seng Bank Tower, 1000 Lujiazui Ring Road',
     is_default: false,
     created_at: '2024-01-02T00:00:00Z',
     updated_at: '2024-01-02T00:00:00Z',
@@ -914,25 +913,25 @@ export const mockUserAddresses: UserAddress[] = [
   {
     id: 'addr_3',
     user_id: '1',
-    name: '王五',
+    name: 'Wang Wu',
     phone: '13700137000',
-    province: '广东省',
-    city: '深圳市',
-    district: '南山区',
-    address: '科技园南区深南大道9988号',
+    province: 'Guangdong Province',
+    city: 'Shenzhen',
+    district: 'Nanshan District',
+    address: 'No.9988 Shennan Avenue, South District, Science Park',
     is_default: false,
     created_at: '2024-01-03T00:00:00Z',
     updated_at: '2024-01-03T00:00:00Z',
   },
 ];
 
-// 模拟优惠券数据
+// Mock coupon data
 export const mockCoupons: Coupon[] = [
   {
     id: 'coupon_1',
     code: 'WELCOME10',
-    name: '新用户专享',
-    description: '新用户注册即可获得10%折扣优惠券',
+    name: 'New User Exclusive',
+    description: 'New users get 10% discount coupon upon registration',
     type: 'percentage',
     value: 10,
     min_order_amount: 100,
@@ -946,8 +945,8 @@ export const mockCoupons: Coupon[] = [
   {
     id: 'coupon_2',
     code: 'SAVE50',
-    name: '满减优惠',
-    description: '订单满500元立减50元',
+    name: 'Spend & Save',
+    description: 'Save ¥50 on orders over ¥500',
     type: 'fixed_amount',
     value: 50,
     min_order_amount: 500,
@@ -960,8 +959,8 @@ export const mockCoupons: Coupon[] = [
   {
     id: 'coupon_3',
     code: 'VIP20',
-    name: 'VIP专享',
-    description: 'VIP会员专享20%折扣',
+    name: 'VIP Exclusive',
+    description: 'VIP members enjoy 20% discount',
     type: 'percentage',
     value: 20,
     min_order_amount: 1000,
@@ -974,7 +973,7 @@ export const mockCoupons: Coupon[] = [
   },
 ];
 
-// 模拟订单数据
+// Mock order data
 export const mockOrders: Order[] = [
   {
     id: 'order_001',
@@ -983,12 +982,12 @@ export const mockOrders: Order[] = [
     status: 'delivered',
     shipping_address: {
       id: 'addr_1',
-      full_name: '张三',
+      full_name: 'Zhang San',
       phone: '13800138000',
-      street: '建国门外大街1号国贸大厦A座1001室',
-      city: '北京市',
-      state: '北京市',
-      country: '中国',
+      street: 'Room 1001, Tower A, China World Trade Center, No.1 Jianguomenwai Avenue',
+      city: 'Beijing',
+      state: 'Beijing',
+      country: 'China',
       postal_code: '100020',
       is_default: true,
     },
@@ -1005,9 +1004,9 @@ export const mockOrders: Order[] = [
         unit_price: 2880,
         product: {
           id: 'prod_1',
-          name: '和田玉观音吊坠',
+          name: 'Hetian White Jade Guanyin Pendant',
           slug: 'hetian-guanyin-pendant',
-          description: '精选和田玉籽料雕刻观音吊坠，寓意平安吉祥',
+          description: 'Selected Xinjiang Hetian jade seed material carved Guanyin pendant, symbolizing peace and good fortune',
           price: 2880,
           category_id: 'cat_1',
           images: ['/images/products/hetian-guanyin-pendant.svg'],
@@ -1025,9 +1024,9 @@ export const mockOrders: Order[] = [
         unit_price: 700,
         product: {
           id: 'prod_2',
-          name: '南红玛瑙手串',
+          name: 'Nanhong Agate Bracelet',
           slug: 'nanhong-bracelet',
-          description: '云南保山南红玛瑙手串，色泽红润',
+          description: 'Yunnan Baoshan Nanhong agate bracelet, lustrous red color',
           price: 700,
           category_id: 'cat_3',
           images: ['/images/products/nanhong-bracelet.svg'],
@@ -1046,12 +1045,12 @@ export const mockOrders: Order[] = [
     status: 'shipped',
     shipping_address: {
       id: 'addr_2',
-      full_name: '李四',
+      full_name: 'Li Si',
       phone: '13900139000',
-      street: '陆家嘴环路1000号恒生银行大厦20楼',
-      city: '上海市',
-      state: '上海市',
-      country: '中国',
+      street: '20F, Hang Seng Bank Tower, 1000 Lujiazui Ring Road',
+      city: 'Shanghai',
+      state: 'Shanghai',
+      country: 'China',
       postal_code: '200120',
       is_default: false,
     },
@@ -1068,9 +1067,9 @@ export const mockOrders: Order[] = [
         unit_price: 4200,
         product: {
           id: 'prod_3',
-          name: '翡翠如意吊坠',
+          name: 'Jadeite Ruyi Pendant',
           slug: 'jadeite-ruyi-pendant',
-          description: '缅甸天然翡翠如意吊坠，翠绿色泽',
+          description: 'Myanmar natural jadeite Ruyi pendant, emerald green color',
           price: 4200,
           category_id: 'cat_2',
           images: ['/images/products/jadeite-ruyi-pendant.svg'],
@@ -1089,12 +1088,12 @@ export const mockOrders: Order[] = [
     status: 'processing',
     shipping_address: {
       id: 'addr_1',
-      full_name: '张三',
+      full_name: 'Zhang San',
       phone: '13800138000',
-      street: '建国门外大街1号国贸大厦A座1001室',
-      city: '北京市',
-      state: '北京市',
-      country: '中国',
+      street: 'Room 1001, Tower A, China World Trade Center, No.1 Jianguomenwai Avenue',
+      city: 'Beijing',
+      state: 'Beijing',
+      country: 'China',
       postal_code: '100020',
       is_default: true,
     },
@@ -1111,9 +1110,9 @@ export const mockOrders: Order[] = [
         unit_price: 790,
         product: {
           id: 'prod_4',
-          name: '碧玉平安扣',
+          name: 'Jasper Peace Buckle',
           slug: 'jasper-peace-buckle',
-          description: '新疆碧玉平安扣，寓意平安健康',
+          description: 'Xinjiang jasper peace buckle, symbolizing peace and health',
           price: 790,
           category_id: 'cat_4',
           images: ['/images/products/jasper-peace-buckle.svg'],
@@ -1132,12 +1131,12 @@ export const mockOrders: Order[] = [
     status: 'pending',
     shipping_address: {
       id: 'addr_3',
-      full_name: '王五',
+      full_name: 'Wang Wu',
       phone: '13700137000',
-      street: '科技园南区深南大道9988号',
-      city: '深圳市',
-      state: '广东省',
-      country: '中国',
+      street: 'No.9988 Shennan Avenue, South District, Science Park',
+      city: 'Shenzhen',
+      state: 'Guangdong Province',
+      country: 'China',
       postal_code: '518000',
       is_default: false,
     },
@@ -1154,9 +1153,9 @@ export const mockOrders: Order[] = [
         unit_price: 6800,
         product: {
           id: 'prod_5',
-          name: '翡翠手镯',
+          name: 'Jadeite Bracelet',
           slug: 'jadeite-bracelet-premium',
-          description: '缅甸A货翡翠手镯，水头充足',
+          description: 'Myanmar Grade A jadeite bracelet, excellent transparency',
           price: 6800,
           category_id: 'cat_2',
           images: ['/images/products/jadeite-bracelet-premium.svg'],
@@ -1175,12 +1174,12 @@ export const mockOrders: Order[] = [
     status: 'cancelled',
     shipping_address: {
       id: 'addr_1',
-      full_name: '张三',
+      full_name: 'Zhang San',
       phone: '13800138000',
-      street: '建国门外大街1号国贸大厦A座1001室',
-      city: '北京市',
-      state: '北京市',
-      country: '中国',
+      street: 'Room 1001, Tower A, China World Trade Center, No.1 Jianguomenwai Avenue',
+      city: 'Beijing',
+      state: 'Beijing',
+      country: 'China',
       postal_code: '100020',
       is_default: true,
     },
@@ -1197,9 +1196,9 @@ export const mockOrders: Order[] = [
         unit_price: 2350,
         product: {
           id: 'prod_6',
-          name: '和田玉籽料原石',
+          name: 'Hetian Jade Seed Material Raw Stone',
           slug: 'hetian-seed-raw',
-          description: '新疆和田玉籽料原石，皮色自然',
+          description: 'Xinjiang Hetian jade seed material raw stone, natural skin color',
           price: 2350,
           category_id: 'cat_1',
           images: ['/images/products/hetian-seed-raw.svg'],
@@ -1213,7 +1212,7 @@ export const mockOrders: Order[] = [
   },
 ];
 
-// 模拟物流信息
+// Mock shipping information
 export interface ShippingInfo {
   order_id: string;
   tracking_number: string;
@@ -1234,81 +1233,81 @@ export const mockShippingInfo: ShippingInfo[] = [
   {
     order_id: 'order_001',
     tracking_number: 'SF1234567890',
-    carrier: '顺丰速运',
+    carrier: 'SF Express',
     status: 'delivered',
     estimated_delivery: '2024-01-20T18:00:00Z',
     tracking_history: [
       {
         timestamp: '2024-01-15T10:30:00Z',
-        status: '订单确认',
-        location: '北京仓库',
-        description: '您的订单已确认，正在准备发货',
+        status: 'Order Confirmed',
+        location: 'Beijing Warehouse',
+        description: 'Your order has been confirmed and is being prepared for shipment',
       },
       {
         timestamp: '2024-01-16T14:20:00Z',
-        status: '已发货',
-        location: '北京分拣中心',
-        description: '包裹已从北京仓库发出',
+        status: 'Shipped',
+        location: 'Beijing Sorting Center',
+        description: 'Package has been dispatched from Beijing warehouse',
       },
       {
         timestamp: '2024-01-17T08:45:00Z',
-        status: '运输中',
-        location: '北京转运中心',
-        description: '包裹正在运输途中',
+        status: 'In Transit',
+        location: 'Beijing Transit Center',
+        description: 'Package is in transit',
       },
       {
         timestamp: '2024-01-18T16:30:00Z',
-        status: '到达目的地',
-        location: '北京朝阳区营业点',
-        description: '包裹已到达派送网点',
+        status: 'Arrived at Destination',
+        location: 'Beijing Chaoyang District Service Point',
+        description: 'Package has arrived at delivery station',
       },
       {
         timestamp: '2024-01-20T16:45:00Z',
-        status: '已签收',
-        location: '国贸大厦A座',
-        description: '包裹已成功签收，签收人：张三',
+        status: 'Delivered',
+        location: 'China World Trade Center Tower A',
+        description: 'Package successfully delivered, signed by: Zhang San',
       },
     ],
   },
   {
     order_id: 'order_002',
     tracking_number: 'YTO9876543210',
-    carrier: '圆通速递',
+    carrier: 'YTO Express',
     status: 'in_transit',
     estimated_delivery: '2024-01-24T18:00:00Z',
     tracking_history: [
       {
         timestamp: '2024-01-18T14:20:00Z',
-        status: '订单确认',
-        location: '上海仓库',
-        description: '您的订单已确认，正在准备发货',
+        status: 'Order Confirmed',
+        location: 'Shanghai Warehouse',
+        description: 'Your order has been confirmed and is being prepared for shipment',
       },
       {
         timestamp: '2024-01-19T10:15:00Z',
-        status: '已发货',
-        location: '上海分拣中心',
-        description: '包裹已从上海仓库发出',
+        status: 'Shipped',
+        location: 'Shanghai Sorting Center',
+        description: 'Package has been dispatched from Shanghai warehouse',
       },
       {
         timestamp: '2024-01-22T09:15:00Z',
-        status: '运输中',
-        location: '上海浦东转运中心',
-        description: '包裹正在运输途中，预计今日送达',
+        status: 'In Transit',
+        location: 'Shanghai Pudong Transit Center',
+        description: 'Package is in transit, expected delivery today',
       },
     ],
   },
   {
     order_id: 'order_003',
     tracking_number: 'ZTO5555666677',
-    carrier: '中通快递',
+    carrier: 'ZTO Express',
     status: 'preparing',
     estimated_delivery: '2024-01-28T18:00:00Z',
     tracking_history: [
       {
         timestamp: '2024-01-25T11:45:00Z',
-        status: '订单确认',
-        location: '北京仓库',
-        description: '您的订单已确认，正在准备发货',
+        status: 'Order Confirmed',
+        location: 'Beijing Warehouse',
+        description: 'Your order has been confirmed and is being prepared for shipment',
       },
     ],
   },

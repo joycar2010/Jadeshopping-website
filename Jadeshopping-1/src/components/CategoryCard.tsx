@@ -77,10 +77,10 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         {/* 商品数量 */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-500">
-            {category.product_count} 件商品
+            {category.product_count} products
           </span>
           <div className="flex items-center text-blue-600 text-sm font-medium group-hover:text-blue-700">
-            查看更多
+            View More
             <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>

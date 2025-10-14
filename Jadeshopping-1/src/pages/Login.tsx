@@ -16,7 +16,7 @@ const Login: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // 如果已登录，重定向到首页或来源页面
+  // If already logged in, redirect to homepage or source page
   useEffect(() => {
     if (isAuthenticated) {
       const from = (location.state as any)?.from?.pathname || '/';
@@ -24,7 +24,7 @@ const Login: React.FC = () => {
     }
   }, [isAuthenticated, navigate, location]);
 
-  // 清除错误信息
+  // Clear error messages
   useEffect(() => {
     return () => {
       clearAuthError();
@@ -35,15 +35,15 @@ const Login: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.email) {
-      newErrors.email = '请输入邮箱地址';
+      newErrors.email = 'Please enter your email address';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = '请输入有效的邮箱地址';
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.password) {
-      newErrors.password = '请输入密码';
+      newErrors.password = 'Please enter your password';
     } else if (formData.password.length < 6) {
-      newErrors.password = '密码长度至少6位';
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -57,7 +57,7 @@ const Login: React.FC = () => {
       [name]: type === 'checkbox' ? checked : value,
     }));
 
-    // 清除对应字段的错误信息
+    // Clear corresponding field error messages
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -88,15 +88,15 @@ const Login: React.FC = () => {
             <span className="text-2xl">💎</span>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            登录您的账户
+            Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            还没有账户？{' '}
+            Don't have an account?{' '}
             <Link
               to="/register"
               className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors"
             >
-              立即注册
+              Sign up now
             </Link>
           </p>
         </div>
@@ -105,7 +105,7 @@ const Login: React.FC = () => {
           <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                邮箱地址
+                Email Address
               </label>
               <input
                 id="email"
@@ -118,7 +118,7 @@ const Login: React.FC = () => {
                 className={`appearance-none relative block w-full px-3 py-2 border ${
                   errors.email ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm transition-colors`}
-                placeholder="请输入邮箱地址"
+                placeholder="Enter your email address"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -127,7 +127,7 @@ const Login: React.FC = () => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                密码
+                Password
               </label>
               <input
                 id="password"
@@ -140,7 +140,7 @@ const Login: React.FC = () => {
                 className={`appearance-none relative block w-full px-3 py-2 border ${
                   errors.password ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm transition-colors`}
-                placeholder="请输入密码"
+                placeholder="Enter your password"
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -159,7 +159,7 @@ const Login: React.FC = () => {
                 className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
               />
               <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-900">
-                记住我
+                Remember me
               </label>
             </div>
 
@@ -168,7 +168,7 @@ const Login: React.FC = () => {
                 to="/forgot-password"
                 className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors"
               >
-                忘记密码？
+                Forgot password?
               </Link>
             </div>
           </div>
@@ -181,7 +181,7 @@ const Login: React.FC = () => {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">
-                    登录失败
+                    Login Failed
                   </h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>{authError.message}</p>
@@ -200,10 +200,10 @@ const Login: React.FC = () => {
               {authLoading ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  登录中...
+                  Signing in...
                 </div>
               ) : (
-                '登录'
+                'Sign In'
               )}
             </button>
           </div>
@@ -214,12 +214,12 @@ const Login: React.FC = () => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 text-gray-500">测试账户</span>
+                <span className="px-2 bg-gray-50 text-gray-500">Test Accounts</span>
               </div>
             </div>
             <div className="mt-3 text-center text-sm text-gray-600">
-              <p>邮箱: admin@jade.com</p>
-              <p>密码: 123456</p>
+              <p>Admin: admin@jade.com / 123456</p>
+              <p>User: test@qq.com / 123456</p>
             </div>
           </div>
         </form>

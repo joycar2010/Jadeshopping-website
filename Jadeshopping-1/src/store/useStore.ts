@@ -24,24 +24,19 @@ import type {
   TransactionLog,
   Notification,
   InventoryUpdate,
-  AdminUser,
-  AdminLoginForm,
-  AdminAuthResponse,
-  DashboardStats,
-  OperationLog,
-  SystemSettings,
+  // Admin types removed
   PaginationParams,
   FilterParams,
 
   ProductFilters,
   OrderFilters,
-  StockAlert,
-  SalesReport,
+  // StockAlert removed
+  // SalesReport removed
 
-  ProductPerformance,
-  QuickAction,
-  AdminNotification,
-  SystemHealth,
+  // ProductPerformance removed
+  // QuickAction removed
+  // AdminNotification removed
+  // SystemHealth removed
   ContentPage,
 
   ProductDetail,
@@ -96,7 +91,19 @@ import type {
   ShippingCostAnalysis,
   DeliveryTimeAnalysis
 } from '@/types';
-import { mockOrders, mockShippingInfo, type ShippingInfo } from '@/data/mockData';
+import { OrderService } from '@/services/orderService';
+
+export interface ShippingInfo {
+  id: string;
+  order_id: string;
+  tracking_number: string;
+  carrier: string;
+  status: string;
+  estimated_delivery: string;
+  actual_delivery?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface AppStore {
   // 用户状态
@@ -792,7 +799,7 @@ export const useStore = create<AppStore>()(
       ordersLoading: false,
       orderDetail: null,
       orderDetailLoading: false,
-      shippingInfo: mockShippingInfo,
+      shippingInfo: [],
 
       isLoading: false,
       error: null,
@@ -1059,7 +1066,8 @@ export const useStore = create<AppStore>()(
         set({ authLoading: true, authError: null });
         
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // 导入同步服务
+          const { syncUserLogin } = await import('../lib/syncService');
           
           // 首先检查硬编码的测试账号
           if (credentials.email === 'user@example.com' && credentials.password === 'password') {
@@ -1102,9 +1110,95 @@ export const useStore = create<AppStore>()(
             });
             
             return true;
+          } else if (credentials.email === 'test@qq.com' && credentials.password === '123456') {
+            // 新的测试账号
+            const user: User = {
+              id: 'test_user_1',
+              email: 'test@qq.com',
+              username: 'testuser',
+              full_name: '测试用户',
+              phone: '13800138000',
+              avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=testuser',
+              balance: 5000,
+              created_at: '2024-12-14T00:00:00Z',
+              updated_at: '2024-12-14T00:00:00Z',
+            };
+            
+            set({
+              user,
+              isAuthenticated: true,
+              authLoading: false
+            });
+            
+            return true;
           }
           
-          // 检查 localStorage 中的用户数据
+          // 尝试从 Supabase 数据库验证用户
+          const { supabase } = await import('../lib/supabase');
+          const { data: dbUser, error } = await supabase
+            .from('frontend_users')
+            .select('*')
+            .eq('email', credentials.email)
+            .single();
+          
+          if (dbUser && !error) {
+            // 验证密码哈希
+            if (dbUser.password_hash) {
+              const bcrypt = await import('bcryptjs');
+              const isPasswordValid = await bcrypt.compare(credentials.password, dbUser.password_hash);
+              
+              if (!isPasswordValid) {
+                set({
+                  authError: { message: '邮箱或密码错误' },
+                  authLoading: false
+                });
+                return false;
+              }
+            } else {
+              // 如果没有密码哈希，拒绝登录
+              set({
+                authError: { message: '账户未设置密码，请联系管理员' },
+                authLoading: false
+              });
+              return false;
+            }
+            
+            const user: User = {
+              id: dbUser.id,
+              email: dbUser.email,
+              username: dbUser.username || '',
+              full_name: dbUser.full_name || '',
+              phone: dbUser.phone || '',
+              avatar: dbUser.avatar_url || '',
+              balance: 0, // 可以从其他表获取余额信息
+              created_at: dbUser.created_at,
+              updated_at: dbUser.updated_at,
+            };
+            
+            // 同步登录状态
+            await syncUserLogin(user.id);
+            
+            // 启动实时同步服务
+            try {
+              const { realtimeSyncService } = await import('../services/realtimeSyncService');
+              if (!realtimeSyncService.getSyncStatus().isInitialized) {
+                await realtimeSyncService.initialize();
+              }
+              await realtimeSyncService.syncUserLoginManually(user.id);
+            } catch (syncError) {
+              console.warn('启动实时同步服务失败:', syncError);
+            }
+            
+            set({
+              user,
+              isAuthenticated: true,
+              authLoading: false
+            });
+            
+            return true;
+          }
+          
+          // 检查 localStorage 中的用户数据（向后兼容）
           const existingUsers = localStorage.getItem('jade-shopping-users');
           if (existingUsers) {
             try {
@@ -1124,6 +1218,13 @@ export const useStore = create<AppStore>()(
                   created_at: foundUser.created_at,
                   updated_at: foundUser.updated_at,
                 };
+                
+                // 尝试同步登录状态
+                try {
+                  await syncUserLogin(user.id);
+                } catch (syncError) {
+                  console.warn('同步登录状态失败:', syncError);
+                }
                 
                 set({
                   user,
@@ -1145,6 +1246,7 @@ export const useStore = create<AppStore>()(
           });
           return false;
         } catch (error) {
+          console.error('登录失败:', error);
           set({
             authError: { message: '登录失败，请稍后重试' },
             authLoading: false
@@ -1157,26 +1259,10 @@ export const useStore = create<AppStore>()(
         set({ authLoading: true, authError: null });
         
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // 导入同步服务
+          const { syncUserRegistration } = await import('../lib/syncService');
           
-          // 检查邮箱是否已存在
-          const existingUsers = localStorage.getItem('jade-shopping-users');
-          let users = [];
-          if (existingUsers) {
-            try {
-              users = JSON.parse(existingUsers);
-              if (users.some((u: any) => u.email === userData.email)) {
-                set({
-                  authError: { message: '该邮箱已被注册' },
-                  authLoading: false
-                });
-                return false;
-              }
-            } catch (parseError) {
-              console.warn('解析现有用户数据失败:', parseError);
-            }
-          }
-          
+          // 验证密码一致性
           if (userData.password !== userData.confirmPassword) {
             set({
               authError: { message: '两次输入的密码不一致' },
@@ -1185,33 +1271,68 @@ export const useStore = create<AppStore>()(
             return false;
           }
           
-          const userId = `user_${Date.now()}`;
-          const now = new Date().toISOString();
-          
-          // 创建用户对象
-          const user: User = {
-            id: userId,
+          // 同步用户注册到 Supabase 数据库
+          const syncResult = await syncUserRegistration({
             email: userData.email,
             username: userData.username,
-            full_name: userData.fullName,
+            full_name: userData.full_name,
             phone: userData.phone || '',
-            avatar: '',
+            password: userData.password
+          });
+          
+          if (!syncResult.success) {
+            set({
+              authError: { message: syncResult.error || '注册失败' },
+              authLoading: false
+            });
+            return false;
+          }
+          
+          // 如果同步成功，创建本地用户对象
+          const user: User = {
+            id: syncResult.user!.id,
+            email: syncResult.user!.email,
+            username: syncResult.user!.username || userData.username,
+            full_name: syncResult.user!.full_name || userData.full_name,
+            phone: syncResult.user!.phone || userData.phone || '',
+            avatar: syncResult.user!.avatar_url || '',
             balance: 0,
-            created_at: now,
-            updated_at: now,
+            created_at: syncResult.user!.created_at,
+            updated_at: syncResult.user!.updated_at,
           };
 
+          // 启动实时同步服务
+          try {
+            const { realtimeSyncService } = await import('../services/realtimeSyncService');
+            if (!realtimeSyncService.getSyncStatus().isInitialized) {
+              await realtimeSyncService.initialize();
+            }
+          } catch (syncError) {
+            console.warn('启动实时同步服务失败:', syncError);
+          }
+
+          // 同时保存到本地存储以保持兼容性
+          const existingUsers = localStorage.getItem('jade-shopping-users');
+          let users = [];
+          if (existingUsers) {
+            try {
+              users = JSON.parse(existingUsers);
+            } catch (parseError) {
+              console.warn('解析现有用户数据失败:', parseError);
+            }
+          }
+          
           // 创建用户详情对象（用于管理员页面）
           const userDetail = {
-            id: userId,
-            username: userData.username,
-            email: userData.email,
-            full_name: userData.fullName,
-            phone: userData.phone || '',
-            avatar: '',
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            full_name: user.full_name,
+            phone: user.phone,
+            avatar: user.avatar,
             status: 'active' as const,
-            registration_date: now,
-            last_login: now,
+            registration_date: user.created_at,
+            last_login: user.created_at,
             email_verified: false,
             phone_verified: false,
             total_orders: 0,
@@ -1219,16 +1340,15 @@ export const useStore = create<AppStore>()(
             membership_level: 'bronze' as const,
             tags: ['新用户'],
             permissions: ['user:read', 'order:create'],
-            created_at: now,
-            updated_at: now
+            created_at: user.created_at,
+            updated_at: user.updated_at
           };
           
           // 保存到本地存储
           users.push(userDetail);
           localStorage.setItem('jade-shopping-users', JSON.stringify(users));
           
-          // 更新 allUsers 状态以实时反映新注册的用户
-          const currentState = get();
+          // 更新状态
           set({
             user,
             isAuthenticated: true,
@@ -1241,6 +1361,7 @@ export const useStore = create<AppStore>()(
           
           return true;
         } catch (error) {
+          console.error('注册失败:', error);
           set({
             authError: { message: '注册失败，请稍后重试' },
             authLoading: false
@@ -1753,23 +1874,20 @@ export const useStore = create<AppStore>()(
         set({ ordersLoading: true, error: null });
         
         try {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          let filteredOrders = [...mockOrders];
-          
-          if (filters.status) {
-            filteredOrders = filteredOrders.filter(order => order.status === filters.status);
+          const { user } = get();
+          if (!user) {
+            throw new Error('用户未登录');
           }
-          
-          const page = filters.page || 1;
-          const limit = filters.limit || 10;
-          const startIndex = (page - 1) * limit;
-          const endIndex = startIndex + limit;
-          
-          const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+          const result = await OrderService.getOrders({
+            user_id: user.id,
+            status: filters.status,
+            page: filters.page || 1,
+            limit: filters.limit || 10
+          });
           
           set({
-            orders: paginatedOrders,
+            orders: result.orders,
             ordersLoading: false
           });
         } catch (error) {
@@ -1784,9 +1902,7 @@ export const useStore = create<AppStore>()(
         set({ orderDetailLoading: true, error: null });
         
         try {
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-          const order = mockOrders.find(o => o.id === orderId);
+          const order = await OrderService.getOrderById(orderId);
           
           if (!order) {
             throw new Error('订单不存在');
@@ -1843,15 +1959,20 @@ export const useStore = create<AppStore>()(
         }
       },
       
-      reorderItems: (orderId: string) => {
-        const order = mockOrders.find(o => o.id === orderId);
-        if (!order) return;
+      reorderItems: async (orderId: string) => {
+        try {
+          const order = await OrderService.getOrderById(orderId);
+          if (!order) return;
 
-        const { addToCart } = get();
-        
-        order.items.forEach(item => {
-          // 这里需要根据实际的Product结构来构造product对象
-        });
+          const { addToCart } = get();
+          
+          order.items.forEach(item => {
+            // 这里需要根据实际的Product结构来构造product对象
+            // 暂时跳过实现，需要产品服务支持
+          });
+        } catch (error) {
+          console.error('重新下单失败:', error);
+        }
       },
       
       clearOrderDetail: () => {
@@ -3931,52 +4052,8 @@ export const useStore = create<AppStore>()(
       fetchAllOrders: async (params = {}) => {
         set({ allOrdersLoading: true });
         try {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const mockOrders: OrderDetail[] = [
-            {
-              id: '1',
-              order_number: 'ORD20240115001',
-              user_id: '1',
-              user_name: '张三',
-              user_email: 'user001@example.com',
-              user_phone: '13800138001',
-              status: 'processing',
-              payment_status: 'paid',
-              shipping_status: 'preparing',
-              total_amount: 599.00,
-              discount_amount: 50.00,
-              shipping_fee: 15.00,
-              tax_amount: 0.00,
-              final_amount: 564.00,
-              currency: 'CNY',
-              items: [
-                {
-                  product_id: '1',
-                  product_name: '时尚休闲鞋',
-                  sku: 'SHOE001',
-                  quantity: 2,
-                  unit_price: 299.00,
-                  total_price: 598.00,
-                  product_image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20casual%20sneakers%20product%20photo&image_size=square'
-                }
-              ],
-              shipping_address: {
-                recipient_name: '张三',
-                phone: '13800138001',
-                province: '北京市',
-                city: '北京市',
-                district: '朝阳区',
-                street: '建国路88号',
-                postal_code: '100000'
-              },
-              payment_method: 'alipay',
-              coupon_code: 'NEW50',
-              notes: '请尽快发货',
-              created_at: '2024-01-15T10:30:00Z',
-              updated_at: '2024-01-15T11:00:00Z'
-            }
-          ];
-          set({ allOrders: mockOrders, allOrdersLoading: false });
+          const result = await OrderService.getOrders(params);
+          set({ allOrders: result.orders, allOrdersLoading: false });
         } catch (error) {
           set({ allOrdersLoading: false });
         }

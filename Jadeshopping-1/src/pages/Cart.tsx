@@ -1,8 +1,13 @@
-import React, { useState, useCallback, useMemo, startTransition } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Check, Loader2 } from 'lucide-react'
-import { mockProducts } from '@/data/mockData'
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Check, Loader2, Wifi, WifiOff } from 'lucide-react'
+import { ProductService } from '@/services/productService'
+import { realtimeSyncService } from '@/services/realtimeSyncService'
+import { toast } from 'sonner'
+import type { Product } from '@/types'
+
+const productService = new ProductService();
 
 const Cart: React.FC = () => {
   const navigate = useNavigate()
@@ -22,8 +27,10 @@ const Cart: React.FC = () => {
   )
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{code: string, discount: number} | null>(null)
+  const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([])
+  const [isConnected, setIsConnected] = useState(true)
 
-  // 计算选中商品的总价
+  // Calculate total price of selected products
   const selectedTotal = cart
     .filter(item => selectedItems.includes(item.product_id))
     .reduce((total, item) => total + (item.product.price * item.quantity), 0)
@@ -37,7 +44,7 @@ const Cart: React.FC = () => {
   // 最终应付金额
   const finalTotal = selectedTotal + shippingFee - couponDiscount
 
-  // 计算选中商品的总件数
+  // Calculate total quantity of selected products
   const selectedTotalQuantity = cart
     .filter(item => selectedItems.includes(item.product_id))
     .reduce((total, item) => total + item.quantity, 0)
@@ -71,6 +78,45 @@ const Cart: React.FC = () => {
     }
   }
 
+  // 更新商品数量（带乐观更新）
+  const handleQuantityChange = async (productId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      removeFromCart(productId)
+      return
+    }
+
+    const oldQuantity = cart.find(item => item.product_id === productId)?.quantity || 0
+    
+    try {
+      // 先执行本地更新
+      updateCartItemQuantity(productId, newQuantity)
+      
+      // 使用乐观更新同步到服务器
+      await realtimeSyncService.optimisticUpdateWithRetry(
+        'cart_items',
+        productId,
+        {
+          product_id: productId,
+          quantity: newQuantity,
+          user_id: user?.id || 'current_user_id'
+        },
+        () => {
+          // 本地更新已经完成
+        },
+        () => {
+          // 回滚操作
+          updateCartItemQuantity(productId, oldQuantity)
+          toast.error('Failed to update quantity, please try again')
+        }
+      )
+    } catch (error) {
+      console.error('Failed to update cart quantity:', error)
+      // 回滚到原始数量
+      updateCartItemQuantity(productId, oldQuantity)
+      toast.error('Failed to update quantity')
+    }
+  }
+
   // 删除选中商品
   const handleDeleteSelected = () => {
     selectedItems.forEach(productId => {
@@ -79,15 +125,15 @@ const Cart: React.FC = () => {
     setSelectedItems([])
   }
 
-  // 缓存选中的购物车商品数据
+  // Cache selected cart product data
   const selectedCartItems = useMemo(() => {
     return cart.filter(item => selectedItems.includes(item.product_id));
   }, [cart, selectedItems]);
 
-  // 验证商品数据完整性
+  // Validate product data integrity
   const validateCartItems = useCallback((items: typeof selectedCartItems, selectedCount: number) => {
     if (items.length !== selectedCount) {
-      return { isValid: false, error: '部分选中商品在购物车中不存在' };
+      return { isValid: false, error: 'Some selected products do not exist in cart' };
     }
     
     const hasInvalidItems = items.some(item => 
@@ -100,16 +146,16 @@ const Cart: React.FC = () => {
     );
     
     if (hasInvalidItems) {
-      return { isValid: false, error: '选中商品数据不完整' };
+      return { isValid: false, error: 'Selected product data is incomplete' };
     }
     
     return { isValid: true, error: null };
   }, []);
 
-  // 处理结算
+  // Handle checkout
   const handleCheckout = async () => {
     if (selectedItems.length === 0) {
-      alert('请选择要结算的商品');
+      alert('Please select products to checkout');
       return;
     }
 
@@ -120,7 +166,7 @@ const Cart: React.FC = () => {
     }
 
     if (!user) {
-      alert('请先登录');
+      alert('Please login first');
       return;
     }
 
@@ -181,15 +227,114 @@ const Cart: React.FC = () => {
       }, 200);
 
     } catch (error) {
-      console.error('订单创建失败:', error);
-      alert('订单创建失败，请稍后重试');
+      console.error('Order creation failed:', error);
+      alert('Order creation failed, please try again later');
     }
   };
 
 
 
-  // 推荐商品
-  const recommendedProducts = mockProducts.slice(0, 4)
+
+
+  // 设置实时订阅
+  useEffect(() => {
+    const initializeRealtime = async () => {
+      try {
+        await realtimeSyncService.initialize({
+          onCartUpdate: (cartUpdate) => {
+            // 处理购物车更新
+            console.log('Cart updated:', cartUpdate)
+            toast.info('Cart has been updated', { duration: 3000 })
+          },
+          onProductStockUpdate: (stockUpdate) => {
+            // 检查购物车中是否有该商品
+            const cartItem = cart.find(item => item.product_id === stockUpdate.id)
+            if (cartItem) {
+              if (stockUpdate.stock_quantity === 0) {
+                toast.warning(`${cartItem.product.name} is now out of stock`, {
+                  duration: 5000,
+                  action: {
+                    label: 'Remove',
+                    onClick: () => removeFromCart(cartItem.product_id)
+                  }
+                })
+              } else if (stockUpdate.stock_quantity < cartItem.quantity) {
+                toast.warning(`${cartItem.product.name} stock is low. Only ${stockUpdate.stock_quantity} available`, {
+                  duration: 4000,
+                  action: {
+                    label: 'Update',
+                    onClick: () => handleQuantityChange(cartItem.product_id, stockUpdate.stock_quantity)
+                  }
+                })
+              }
+            }
+          },
+          onConnectionChange: (connected) => {
+            setIsConnected(connected)
+            if (connected) {
+              toast.success('Real-time updates connected', { duration: 2000 })
+            } else {
+              toast.warning('Real-time updates disconnected', { duration: 3000 })
+            }
+          },
+          onError: (error) => {
+            console.error('Realtime sync error:', error)
+            toast.error('Real-time sync error occurred')
+          }
+        })
+
+        // 订阅用户购物车变化
+        if (user?.id) {
+          await realtimeSyncService.subscribeToUserCart(user.id, (payload) => {
+            console.log('User cart changed:', payload)
+            // 这里可以处理其他设备对购物车的修改
+            if (payload.eventType === 'DELETE') {
+              toast.info('Item removed from cart on another device')
+            } else if (payload.eventType === 'UPDATE') {
+              toast.info('Cart updated on another device')
+            }
+          })
+        }
+
+        // 订阅购物车中所有商品的库存变化
+        const productIds = cart.map(item => item.product_id)
+        if (productIds.length > 0) {
+          await realtimeSyncService.subscribeToMultipleProductsStock(productIds, (stockUpdates) => {
+            stockUpdates.forEach(update => {
+              const cartItem = cart.find(item => item.product_id === update.id)
+              if (cartItem && update.stock_quantity < cartItem.quantity) {
+                toast.warning(`Stock updated for ${cartItem.product.name}`)
+              }
+            })
+          })
+        }
+      } catch (error) {
+        console.error('Failed to initialize realtime sync:', error)
+        setIsConnected(false)
+      }
+    }
+
+    initializeRealtime()
+
+    return () => {
+      realtimeSyncService.unsubscribeAll()
+    }
+  }, [user?.id, cart, removeFromCart])
+
+  useEffect(() => {
+    const loadRecommendedProducts = async () => {
+      try {
+        const result = await productService.getFeaturedProducts(4);
+        if (result.success && result.data) {
+          setRecommendedProducts(result.data);
+        }
+      } catch (error) {
+        console.error('Failed to load recommended products:', error);
+      }
+    };
+
+    loadRecommendedProducts();
+  }, []);
 
   if (cart.length === 0) {
     return (
@@ -198,9 +343,9 @@ const Cart: React.FC = () => {
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <nav className="flex items-center space-x-2 text-sm">
-              <Link to="/" className="text-gray-500 hover:text-jade-600">首页</Link>
+              <Link to="/" className="text-gray-500 hover:text-jade-600">Home</Link>
               <span className="text-gray-400">/</span>
-              <span className="text-gray-900">购物车</span>
+              <span className="text-gray-900">Shopping Cart</span>
             </nav>
           </div>
         </div>
@@ -211,20 +356,20 @@ const Cart: React.FC = () => {
             <div className="w-32 h-32 mx-auto mb-8 bg-gray-100 rounded-full flex items-center justify-center">
               <ShoppingBag className="w-16 h-16 text-gray-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">购物车是空的</h2>
-            <p className="text-gray-600 mb-8">快去挑选您喜欢的玉石商品吧</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
+            <p className="text-gray-600 mb-8">Discover our beautiful antique collection</p>
             <Link
               to="/products"
               className="inline-flex items-center px-6 py-3 bg-jade-600 text-white font-medium rounded-lg hover:bg-jade-700 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
-              继续购物
+              Continue Shopping
             </Link>
           </div>
 
           {/* 推荐商品 */}
           <div className="mt-16">
-            <h3 className="text-xl font-bold text-gray-900 mb-8 text-center">为您推荐</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-8 text-center">Recommended for You</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {recommendedProducts.map((product) => (
                 <Link
@@ -254,13 +399,42 @@ const Cart: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 连接状态指示器 */}
+      {!isConnected && (
+        <div className="bg-yellow-50 border-b border-yellow-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <div className="flex items-center justify-center space-x-2 text-sm text-yellow-800">
+              <WifiOff className="w-4 h-4" />
+              <span>Real-time updates disconnected. Cart data may not be current.</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 面包屑导航 */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <nav className="flex items-center space-x-2 text-sm">
-            <Link to="/" className="text-gray-500 hover:text-jade-600">首页</Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900">购物车</span>
+          <nav className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-sm">
+              <Link to="/" className="text-gray-500 hover:text-jade-600">Home</Link>
+              <span className="text-gray-400">/</span>
+              <span className="text-gray-900">Shopping Cart</span>
+            </div>
+            
+            {/* 实时连接状态 */}
+            <div className="flex items-center space-x-2">
+              {isConnected ? (
+                <div className="flex items-center space-x-1 text-green-600">
+                  <Wifi className="w-4 h-4" />
+                  <span className="text-xs">Live</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-1 text-gray-400">
+                  <WifiOff className="w-4 h-4" />
+                  <span className="text-xs">Offline</span>
+                </div>
+              )}
+            </div>
           </nav>
         </div>
       </div>
@@ -274,7 +448,7 @@ const Cart: React.FC = () => {
               <div className="p-6 border-b">
                 <div className="flex items-center justify-between">
                   <h1 className="text-2xl font-bold text-gray-900">
-                    购物车 ({cartItemCount}件商品)
+                    Shopping Cart ({cartItemCount} items)
                   </h1>
                   <div className="flex items-center space-x-4">
                     <button
@@ -290,21 +464,21 @@ const Cart: React.FC = () => {
                           <Check className="w-3 h-3 text-white" />
                         )}
                       </div>
-                      全选
+                      Select All
                     </button>
                     {selectedItems.length > 0 && (
                       <button
                         onClick={handleDeleteSelected}
                         className="text-sm text-red-600 hover:text-red-700"
                       >
-                        删除选中
+                        Delete Selected
                       </button>
                     )}
                     <button
                       onClick={clearCart}
                       className="text-sm text-gray-500 hover:text-gray-700"
                     >
-                      清空购物车
+                      Clear Cart
                     </button>
                   </div>
                 </div>
@@ -360,7 +534,7 @@ const Cart: React.FC = () => {
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center border rounded-lg">
                           <button
-                            onClick={() => updateCartItemQuantity(item.product_id, item.quantity - 1)}
+                            onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
                             className="p-2 hover:bg-gray-50 disabled:opacity-50"
                             disabled={item.quantity <= 1}
                           >
@@ -370,7 +544,7 @@ const Cart: React.FC = () => {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateCartItemQuantity(item.product_id, item.quantity + 1)}
+                            onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
                             className="p-2 hover:bg-gray-50"
                           >
                             <Plus className="w-4 h-4" />
@@ -400,56 +574,56 @@ const Cart: React.FC = () => {
           {/* 订单摘要栏 */}
           <div className="lg:w-80">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">订单摘要</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h3>
               
-              {/* 优惠券 */}
+              {/* Coupon */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  优惠券
+                  Coupon Code
                 </label>
                 <div className="flex space-x-2">
                   <input
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="请输入优惠券代码"
+                    placeholder="Enter coupon code"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-jade-500 focus:border-jade-500"
                   />
                   <button
                     onClick={handleApplyCoupon}
                     className="px-4 py-2 bg-jade-600 text-white rounded-lg hover:bg-jade-700 transition-colors"
                   >
-                    使用
+                    Apply
                   </button>
                 </div>
                 {appliedCoupon && (
                   <p className="text-sm text-green-600 mt-2">
-                    已使用优惠券：{appliedCoupon.code} (-{(appliedCoupon.discount * 100).toFixed(0)}%)
+                    Coupon applied: {appliedCoupon.code} (-{(appliedCoupon.discount * 100).toFixed(0)}%)
                   </p>
                 )}
               </div>
 
-              {/* 价格明细 */}
+              {/* Price Details */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">商品总价</span>
+                  <span className="text-gray-600">Subtotal</span>
                   <span className="text-gray-900">¥{selectedTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">运费</span>
+                  <span className="text-gray-600">Shipping</span>
                   <span className="text-gray-900">
-                    {shippingFee === 0 ? '免运费' : `¥${shippingFee}`}
+                    {shippingFee === 0 ? 'Free' : `¥${shippingFee}`}
                   </span>
                 </div>
                 {couponDiscount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">优惠券折扣</span>
+                    <span className="text-gray-600">Coupon Discount</span>
                     <span className="text-green-600">-¥{couponDiscount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="border-t pt-3">
                   <div className="flex justify-between">
-                    <span className="text-lg font-bold text-gray-900">应付总额</span>
+                    <span className="text-lg font-bold text-gray-900">Total</span>
                     <span className="text-xl font-bold text-jade-600">
                       ¥{finalTotal.toLocaleString()}
                     </span>
@@ -457,30 +631,30 @@ const Cart: React.FC = () => {
                 </div>
               </div>
 
-              {/* 服务保障 */}
+              {/* Service Guarantee */}
               <div className="mb-6 p-3 bg-gray-50 rounded-lg">
                 <div className="text-xs text-gray-600 space-y-1">
-                  <p>✓ 满99元免运费</p>
-                  <p>✓ 7天无理由退换</p>
-                  <p>✓ 正品保证</p>
+                  <p>✓ Free shipping over ¥99</p>
+                  <p>✓ 7-day return policy</p>
+                  <p>✓ Authenticity guaranteed</p>
                 </div>
               </div>
 
-              {/* 结算按钮 */}
+              {/* Checkout Button */}
               <button
                 onClick={handleCheckout}
                 disabled={selectedItems.length === 0}
                 className="w-full py-3 mb-3 font-medium rounded-lg transition-all duration-200 flex items-center justify-center bg-green-600 text-white hover:bg-green-700 hover:shadow-md active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
-                {selectedItems.length === 0 ? '请选择商品' : `结算 (${selectedTotalQuantity})`}
+                {selectedItems.length === 0 ? 'Select Items' : `Checkout (${selectedTotalQuantity})`}
               </button>
 
-              {/* 继续购物按钮 */}
+              {/* Continue Shopping Button */}
               <Link
                 to="/products"
                 className="w-full py-3 font-medium rounded-lg transition-all duration-200 flex items-center justify-center border border-yellow-400 text-yellow-600 hover:bg-yellow-50"
               >
-                继续购物
+                Continue Shopping
               </Link>
             </div>
           </div>
@@ -504,10 +678,10 @@ const Cart: React.FC = () => {
                   <Check className="w-3 h-3 text-white" />
                 )}
               </div>
-              全选
+              Select All
             </button>
             <div className="text-sm">
-              <span className="text-gray-600">合计：</span>
+              <span className="text-gray-600">Total: </span>
               <span className="text-lg font-bold text-green-600">
                 ¥{finalTotal.toLocaleString()}
               </span>
@@ -518,7 +692,7 @@ const Cart: React.FC = () => {
             disabled={selectedItems.length === 0}
             className="px-6 py-2 font-medium rounded-lg transition-all duration-200 flex items-center bg-green-600 text-white hover:bg-green-700 hover:shadow-md active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            {selectedItems.length === 0 ? '请选择商品' : `结算 (${selectedTotalQuantity})`}
+            {selectedItems.length === 0 ? 'Select Items' : `Checkout (${selectedTotalQuantity})`}
           </button>
         </div>
       </div>

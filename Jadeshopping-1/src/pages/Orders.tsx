@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
+import { OrderService } from '@/services/orderService'
+import { realtimeSyncService } from '@/services/realtimeSyncService'
+import { toast } from 'sonner'
 import { 
   Package, 
   Truck, 
@@ -12,52 +15,228 @@ import {
   RefreshCw,
   ShoppingCart,
   Eye,
-  RotateCcw
+  RotateCcw,
+  Wifi,
+  WifiOff,
+  AlertCircle
 } from 'lucide-react'
 
+interface Order {
+  id: string
+  order_number: string
+  status: string
+  total_amount: number
+  created_at: string
+  payment_method: string
+  shipping_method?: string
+  tracking_number?: string
+  order_items: Array<{
+    id: string
+    product_id: string
+    quantity: number
+    price: number
+    products: {
+      id: string
+      name: string
+      image_url?: string
+    }
+  }>
+}
+
 const Orders: React.FC = () => {
-  const { 
-    orders, 
-    ordersLoading, 
-    fetchOrders, 
-    cancelOrder, 
-    reorderItems,
-    isLoading,
-    error,
-    setError
-  } = useStore()
+  const { user } = useStore()
+  const orderService = new OrderService()
   
+  const [orders, setOrders] = useState<Order[]>([])
+  const [ordersLoading, setOrdersLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  
-  useEffect(() => {
-    fetchOrders({ status: statusFilter === 'all' ? undefined : statusFilter, page: currentPage })
-  }, [statusFilter, currentPage, fetchOrders])
-  
-  // 状态映射
-  const statusConfig = {
-    pending: { label: '待支付', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    processing: { label: '处理中', color: 'bg-blue-100 text-blue-800', icon: Package },
-    shipped: { label: '已发货', color: 'bg-purple-100 text-purple-800', icon: Truck },
-    delivered: { label: '已送达', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-    cancelled: { label: '已取消', color: 'bg-red-100 text-red-800', icon: XCircle }
+  const [isConnected, setIsConnected] = useState(true)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalOrders, setTotalOrders] = useState(0)
+
+  // 获取订单列表
+  const fetchOrders = async (filters: { status?: string; page?: number } = {}) => {
+    if (!user?.id) return
+
+    setOrdersLoading(true)
+    setError(null)
+    
+    try {
+      const result = await orderService.getOrders({
+        user_id: user.id,
+        status: filters.status,
+        limit: 10,
+        offset: ((filters.page || 1) - 1) * 10
+      })
+      
+      if (result.success && result.data) {
+        setOrders(result.data.orders)
+        setTotalOrders(result.data.total)
+        setTotalPages(Math.ceil(result.data.total / 10))
+      } else {
+        setError(result.error || 'Failed to load orders')
+      }
+    } catch (err) {
+      console.error('Failed to fetch orders:', err)
+      setError('Failed to load orders. Please try again.')
+    } finally {
+      setOrdersLoading(false)
+    }
+  }
+
+  // 取消订单
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return
+
+    try {
+      const result = await orderService.cancelOrder(orderId, 'Cancelled by user')
+      
+      if (result.success) {
+        toast.success('Order cancelled successfully')
+        fetchOrders({ status: statusFilter === 'all' ? undefined : statusFilter, page: currentPage })
+      } else {
+        toast.error(result.error || 'Failed to cancel order')
+      }
+    } catch (err) {
+      console.error('Failed to cancel order:', err)
+      toast.error('Failed to cancel order')
+    }
+  }
+
+  // 重新下单
+  const handleReorder = async (orderId: string) => {
+    if (!user?.id) return
+
+    try {
+      const result = await orderService.reorder(orderId, user.id)
+      
+      if (result.success) {
+        toast.success('Order created successfully')
+        // 刷新订单列表
+        fetchOrders({ status: statusFilter === 'all' ? undefined : statusFilter, page: currentPage })
+      } else {
+        toast.error(result.error || 'Failed to reorder items')
+      }
+    } catch (err) {
+      console.error('Failed to reorder:', err)
+      toast.error('Failed to reorder items')
+    }
+  }
+
+  // 确认收货
+  const handleConfirmDelivery = async (orderId: string) => {
+    if (!user?.id) return
+    if (!window.confirm('Are you sure you want to confirm delivery?')) return
+
+    try {
+      const result = await orderService.confirmDelivery(orderId, user.id)
+      
+      if (result.success) {
+        toast.success('Delivery confirmed successfully')
+        fetchOrders({ status: statusFilter === 'all' ? undefined : statusFilter, page: currentPage })
+      } else {
+        toast.error(result.error || 'Failed to confirm delivery')
+      }
+    } catch (err) {
+      console.error('Failed to confirm delivery:', err)
+      toast.error('Failed to confirm delivery')
+    }
   }
   
-  // 支付方式映射
+  // 设置实时订阅
+  useEffect(() => {
+    const initializeRealtime = async () => {
+      try {
+        await realtimeSyncService.initialize({
+          onOrderUpdate: (orderUpdate) => {
+            // 处理订单状态更新
+            console.log('Order updated:', orderUpdate)
+            const statusInfo = orderService.getOrderStatusInfo(orderUpdate.status)
+            toast.info(`Order ${orderUpdate.order_number || orderUpdate.id} status updated to ${statusInfo.label}`)
+            
+            // 刷新订单列表
+            fetchOrders({ status: statusFilter === 'all' ? undefined : statusFilter, page: currentPage })
+          },
+          onConnectionChange: (connected) => {
+            setIsConnected(connected)
+            if (connected) {
+              toast.success('Real-time updates connected')
+            } else {
+              toast.warning('Real-time updates disconnected')
+            }
+          },
+          onError: (error) => {
+            console.error('Realtime sync error:', error)
+            toast.error('Real-time sync error occurred')
+            setIsConnected(false)
+          }
+        })
+
+        // 订阅用户订单变化
+        if (user?.id) {
+          await realtimeSyncService.subscribeToUserOrders(user.id, (payload) => {
+            console.log('User orders changed:', payload)
+            // 实时更新订单状态
+            if (payload.eventType === 'UPDATE') {
+              setOrders(prevOrders => 
+                prevOrders.map(order => 
+                  order.id === payload.new.id 
+                    ? { ...order, ...payload.new }
+                    : order
+                )
+              )
+            }
+          })
+        }
+      } catch (error) {
+        console.error('Failed to initialize realtime sync:', error)
+        setIsConnected(false)
+      }
+    }
+
+    initializeRealtime()
+
+    return () => {
+      realtimeSyncService.unsubscribeAll()
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    fetchOrders({ status: statusFilter === 'all' ? undefined : statusFilter, page: currentPage })
+  }, [statusFilter, currentPage, user?.id])
+  
+  // Status mapping
+  const statusConfig = {
+    pending: { label: 'Pending Payment', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+    paid: { label: 'Paid', color: 'bg-blue-100 text-blue-800', icon: Package },
+    processing: { label: 'Processing', color: 'bg-purple-100 text-purple-800', icon: Package },
+    shipped: { label: 'Shipped', color: 'bg-indigo-100 text-indigo-800', icon: Truck },
+    delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+    completed: { label: 'Completed', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+    cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle },
+    refunding: { label: 'Refunding', color: 'bg-orange-100 text-orange-800', icon: AlertCircle },
+    refunded: { label: 'Refunded', color: 'bg-gray-100 text-gray-800', icon: AlertCircle }
+  }
+  
+  // Payment method mapping
   const paymentMethodMap = {
-    credit_card: '信用卡',
+    credit_card: 'Credit Card',
     paypal: 'PayPal',
     apple_pay: 'Apple Pay',
     google_pay: 'Google Pay',
-    balance: '余额支付',
-    bank_card: '银行卡'
+    balance: 'Account Balance',
+    bank_card: 'Bank Card',
+    wechat_pay: 'WeChat Pay',
+    alipay: 'Alipay'
   }
   
-  // 格式化日期
+  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('zh-CN', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -66,219 +245,273 @@ const Orders: React.FC = () => {
     })
   }
   
-  // 处理取消订单
-  const handleCancelOrder = async (orderId: string) => {
-    if (window.confirm('确定要取消这个订单吗？')) {
-      const success = await cancelOrder(orderId)
-      if (success) {
-        // 刷新订单列表
-        fetchOrders({ status: statusFilter === 'all' ? undefined : statusFilter, page: currentPage })
-      }
-    }
-  }
-  
-  // 处理重新下单
-  const handleReorder = (orderId: string) => {
-    reorderItems(orderId)
-    // 可以显示成功提示或跳转到购物车
-    alert('商品已添加到购物车')
-  }
-  
-  // 过滤订单
+  // Filter orders
   const filteredOrders = orders.filter(order => {
     if (searchTerm) {
-      return order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             order.items.some(item => item.product.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      const searchLower = searchTerm.toLowerCase()
+      return (
+        order.order_number.toLowerCase().includes(searchLower) ||
+        order.order_items.some(item => 
+          item.products.name.toLowerCase().includes(searchLower)
+        )
+      )
     }
     return true
   })
-  
-  if (ordersLoading && orders.length === 0) {
+
+  if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="flex items-center space-x-2">
-              <RefreshCw className="w-6 h-6 animate-spin text-jade-600" />
-              <span className="text-lg text-gray-600">加载订单中...</span>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h2>
+          <p className="text-gray-600 mb-6">You need to sign in to view your orders.</p>
+          <Link 
+            to="/login" 
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Sign In
+          </Link>
         </div>
       </div>
     )
   }
-  
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 页面标题 */}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">我的订单</h1>
-          <p className="text-gray-600 mt-2">查看和管理您的所有订单</p>
-        </div>
-        
-        {/* 筛选和搜索 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            {/* 状态筛选 */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+              <p className="text-gray-600 mt-2">
+                Track and manage your orders ({totalOrders} total)
+              </p>
+            </div>
+            
+            {/* Connection Status */}
             <div className="flex items-center space-x-2">
-              <Filter className="w-5 h-5 text-gray-400" />
+              {isConnected ? (
+                <div className="flex items-center text-green-600">
+                  <Wifi className="h-4 w-4 mr-1" />
+                  <span className="text-sm">Connected</span>
+                </div>
+              ) : (
+                <div className="flex items-center text-red-600">
+                  <WifiOff className="h-4 w-4 mr-1" />
+                  <span className="text-sm">Disconnected</span>
+                </div>
+              )}
+              
+              <button
+                onClick={() => fetchOrders({ status: statusFilter === 'all' ? undefined : statusFilter, page: currentPage })}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                disabled={ordersLoading}
+              >
+                <RefreshCw className={`h-4 w-4 ${ordersLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search by order number or product name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            {/* Status Filter */}
+            <div className="sm:w-48">
               <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value)
                   setCurrentPage(1)
                 }}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-jade-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">全部状态</option>
-                <option value="pending">待支付</option>
-                <option value="processing">处理中</option>
-                <option value="shipped">已发货</option>
-                <option value="delivered">已送达</option>
-                <option value="cancelled">已取消</option>
+                <option value="all">All Orders</option>
+                <option value="pending">Pending Payment</option>
+                <option value="paid">Paid</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="refunding">Refunding</option>
+                <option value="refunded">Refunded</option>
               </select>
-            </div>
-            
-            {/* 搜索框 */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="搜索订单号或商品名称..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-jade-500 focus:border-transparent w-full md:w-80"
-              />
             </div>
           </div>
         </div>
-        
-        {/* 错误提示 */}
+
+        {/* Error State */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center">
-              <XCircle className="w-5 h-5 text-red-500 mr-2" />
-              <span className="text-red-700">{error}</span>
-              <button
-                onClick={() => setError(null)}
-                className="ml-auto text-red-500 hover:text-red-700"
-              >
-                ×
-              </button>
+              <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+              <p className="text-red-800">{error}</p>
             </div>
           </div>
         )}
-        
-        {/* 订单列表 */}
-        {filteredOrders.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">暂无订单</h3>
-            <p className="text-gray-600 mb-6">您还没有任何订单，快去选购心仪的商品吧！</p>
+
+        {/* Loading State */}
+        {ordersLoading && (
+          <div className="bg-white rounded-lg shadow-sm p-8">
+            <div className="flex items-center justify-center">
+              <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mr-2" />
+              <span className="text-gray-600">Loading orders...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Orders List */}
+        {!ordersLoading && filteredOrders.length === 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+            <p className="text-gray-600 mb-6">
+              {searchTerm || statusFilter !== 'all' 
+                ? 'Try adjusting your search or filter criteria.' 
+                : 'You haven\'t placed any orders yet.'}
+            </p>
             <Link
               to="/products"
-              className="inline-flex items-center px-6 py-3 bg-jade-600 text-white rounded-lg hover:bg-jade-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              去购物
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Start Shopping
             </Link>
           </div>
-        ) : (
+        )}
+
+        {!ordersLoading && filteredOrders.length > 0 && (
           <div className="space-y-6">
             {filteredOrders.map((order) => {
-              const StatusIcon = statusConfig[order.status].icon
+              const statusInfo = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending
+              const StatusIcon = statusInfo.icon
               
               return (
                 <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                  {/* 订单头部 */}
-                  <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
+                  {/* Order Header */}
+                  <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <span className="text-sm text-gray-600">订单号：</span>
-                        <span className="font-mono text-sm font-medium text-gray-900">{order.id}</span>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusConfig[order.status].color}`}>
-                          <StatusIcon className="w-3 h-3 mr-1" />
-                          {statusConfig[order.status].label}
-                        </span>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            Order #{order.order_number}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Placed on {formatDate(order.created_at)}
+                          </p>
+                        </div>
+                        
+                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
+                          <StatusIcon className="h-4 w-4 mr-1" />
+                          {statusInfo.label}
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <span>下单时间：{formatDate(order.created_at)}</span>
+                      
+                      <div className="text-right">
+                        <p className="text-lg font-semibold text-gray-900">
+                          ¥{order.total_amount.toFixed(2)}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {paymentMethodMap[order.payment_method as keyof typeof paymentMethodMap] || order.payment_method}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  
-                  {/* 订单内容 */}
+
+                  {/* Order Items */}
                   <div className="px-6 py-4">
-                    {/* 商品列表 */}
-                    <div className="space-y-3 mb-4">
-                      {order.items.map((item) => (
+                    <div className="space-y-3">
+                      {order.order_items.map((item) => (
                         <div key={item.id} className="flex items-center space-x-4">
-                          <img
-                            src={item.product.images[0]}
-                            alt={item.product.name}
-                            className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                          />
+                          <div className="flex-shrink-0">
+                            <img
+                              src={item.products.image_url || '/placeholder-product.jpg'}
+                              alt={item.products.name}
+                              className="h-16 w-16 object-cover rounded-lg"
+                            />
+                          </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-medium text-gray-900 truncate">
-                              {item.product.name}
+                              {item.products.name}
                             </h4>
                             <p className="text-sm text-gray-600">
-                              ¥{item.unit_price.toLocaleString()} × {item.quantity}
+                              Quantity: {item.quantity} × ¥{item.price.toFixed(2)}
                             </p>
                           </div>
                           <div className="text-sm font-medium text-gray-900">
-                            ¥{(item.unit_price * item.quantity).toLocaleString()}
+                            ¥{(item.quantity * item.price).toFixed(2)}
                           </div>
                         </div>
                       ))}
                     </div>
-                    
-                    {/* 订单信息 */}
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between pt-4 border-t border-gray-200">
-                      <div className="flex items-center space-x-6 text-sm text-gray-600 mb-4 md:mb-0">
-                        <span>支付方式：{paymentMethodMap[order.payment_method as keyof typeof paymentMethodMap] || order.payment_method}</span>
-                        <span>收货人：{order.shipping_address.full_name}</span>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <span className="text-lg font-bold text-gray-900">
-                          总计：¥{order.total_amount.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
                   </div>
-                  
-                  {/* 操作按钮 */}
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                    <div className="flex items-center justify-end space-x-3">
-                      <Link
-                        to={`/orders/${order.id}`}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        查看详情
-                      </Link>
+
+                  {/* Order Actions */}
+                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {order.tracking_number && (
+                          <span className="text-sm text-gray-600">
+                            Tracking: {order.tracking_number}
+                          </span>
+                        )}
+                      </div>
                       
-                      {order.status === 'delivered' && (
-                        <button
-                          onClick={() => handleReorder(order.id)}
-                          className="inline-flex items-center px-4 py-2 text-sm font-medium text-jade-700 bg-jade-50 border border-jade-200 rounded-md hover:bg-jade-100 transition-colors"
+                      <div className="flex items-center space-x-2">
+                        <Link
+                          to={`/orders/${order.id}`}
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                         >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          再次购买
-                        </button>
-                      )}
-                      
-                      {order.status === 'pending' && (
-                        <button
-                          onClick={() => handleCancelOrder(order.id)}
-                          disabled={isLoading}
-                          className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <XCircle className="w-4 h-4 mr-2" />
-                          {isLoading ? '取消中...' : '取消订单'}
-                        </button>
-                      )}
+                          <Eye className="h-4 w-4 mr-1" />
+                          View Details
+                        </Link>
+                        
+                        {order.status === 'pending' && (
+                          <button
+                            onClick={() => handleCancelOrder(order.id)}
+                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Cancel
+                          </button>
+                        )}
+                        
+                        {order.status === 'delivered' && (
+                          <button
+                            onClick={() => handleConfirmDelivery(order.id)}
+                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-700 bg-white border border-green-300 rounded-md hover:bg-green-50 transition-colors"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Confirm Delivery
+                          </button>
+                        )}
+                        
+                        {['completed', 'cancelled'].includes(order.status) && (
+                          <button
+                            onClick={() => handleReorder(order.id)}
+                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md hover:bg-blue-50 transition-colors"
+                          >
+                            <RotateCcw className="h-4 w-4 mr-1" />
+                            Reorder
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -286,13 +519,30 @@ const Orders: React.FC = () => {
             })}
           </div>
         )}
-        
-        {/* 加载更多 */}
-        {ordersLoading && orders.length > 0 && (
-          <div className="flex items-center justify-center py-8">
+
+        {/* Pagination */}
+        {!ordersLoading && filteredOrders.length > 0 && totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center">
             <div className="flex items-center space-x-2">
-              <RefreshCw className="w-5 h-5 animate-spin text-jade-600" />
-              <span className="text-gray-600">加载中...</span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              
+              <span className="px-3 py-2 text-sm text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
             </div>
           </div>
         )}

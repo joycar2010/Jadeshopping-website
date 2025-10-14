@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '@/store/useStore'
 import { ArrowLeft, MapPin, Plus, Edit, CreditCard, Wallet, Check, Tag } from 'lucide-react'
-import { mockPaymentMethods, mockUserAddresses, mockCoupons } from '@/data/mockData'
+import { UserService } from '@/services/userService'
+import { OrderService } from '@/services/orderService'
 import { useToast } from '@/hooks/useToast'
 import Toast from '@/components/Toast'
+import type { UserAddress, PaymentMethod, Coupon } from '@/types'
+
+// 移除mockData导入，使用数据库查询
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate()
@@ -34,108 +38,188 @@ const Checkout: React.FC = () => {
   const [couponCode, setCouponCode] = useState('')
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [showCouponInput, setShowCouponInput] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  // 获取选中的购物车商品
+  // Get selected cart items
   const selectedCartItems = cart.filter(item => item.quantity > 0)
 
   useEffect(() => {
-    // 如果购物车为空，跳转回购物车页面
+    // If cart is empty, redirect to cart page
     if (selectedCartItems.length === 0) {
       navigate('/cart')
       return
     }
 
-    // 初始化地址和支付方式数据
-    if (userAddresses.length === 0) {
-      setUserAddresses(mockUserAddresses)
-      const defaultAddress = mockUserAddresses.find(addr => addr.is_default)
+    // Load user data
+    loadUserData()
+  }, [selectedCartItems.length, user?.id, navigate])
+
+  const loadUserData = async () => {
+    if (!user?.id) return
+
+    try {
+      setLoading(true)
+      
+      // Load user addresses from database
+      const addresses = await UserService.getUserAddresses(user.id)
+      setUserAddresses(addresses)
+      
+      // Set default address
+      const defaultAddress = addresses.find(addr => addr.is_default) || addresses[0]
       if (defaultAddress) {
         setSelectedAddress(defaultAddress)
       }
-    }
 
-    if (paymentMethods.length === 0) {
+      // Mock payment methods - these are usually system-wide configurations
+      const mockPaymentMethods: PaymentMethod[] = [
+        {
+          id: 'balance',
+          type: 'balance',
+          name: 'Account Balance',
+          description: 'Pay with your account balance',
+          icon: '💰',
+          enabled: true,
+          processing_fee: 0
+        },
+        {
+          id: 'alipay',
+          type: 'alipay',
+          name: 'Alipay',
+          description: 'Pay with Alipay',
+          icon: '💙',
+          enabled: true,
+          processing_fee: 0.006
+        },
+        {
+          id: 'wechat',
+          type: 'wechat',
+          name: 'WeChat Pay',
+          description: 'Pay with WeChat Pay',
+          icon: '💚',
+          enabled: true,
+          processing_fee: 0.006
+        }
+      ]
+
+      // Mock coupons - these should be fetched from database
+      const mockCoupons: Coupon[] = [
+        {
+          id: '1',
+          code: 'WELCOME10',
+          name: 'Welcome Discount',
+          description: '10% off for new users',
+          discount_type: 'percentage',
+          discount_value: 10,
+          min_order_amount: 100,
+          max_discount_amount: 50,
+          is_active: true,
+          start_date: '2024-01-01',
+          end_date: '2024-12-31',
+          usage_limit: 1000,
+          used_count: 0,
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z'
+        }
+      ]
+
+      // Set payment methods
       setPaymentMethods(mockPaymentMethods)
-      // 默认选择余额支付
       const balancePayment = mockPaymentMethods.find(method => method.type === 'balance')
       if (balancePayment) {
         setSelectedPaymentMethod(balancePayment)
       }
+
+      // Calculate order summary
+      calculateOrderSummary()
+    } catch (err) {
+      console.error('Failed to load user data:', err)
+      error('Loading failed', 'Failed to load user data, please refresh and try again')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    // 计算订单摘要
-    calculateOrderSummary()
-  }, [selectedCartItems.length, userAddresses.length, paymentMethods.length, setUserAddresses, setSelectedAddress, setPaymentMethods, setSelectedPaymentMethod, calculateOrderSummary, navigate])
-
-  // 处理地址选择
-  const handleAddressSelect = (address: typeof userAddresses[0]) => {
+  // Handle address selection
+  const handleAddressSelect = (address: UserAddress) => {
     setSelectedAddress(address)
   }
 
-  // 处理支付方式选择
-  const handlePaymentMethodSelect = (method: typeof paymentMethods[0]) => {
+  // Handle payment method selection
+  const handlePaymentMethodSelect = (method: PaymentMethod) => {
     setSelectedPaymentMethod(method)
   }
 
-  // 应用优惠券
+  // Apply coupon
   const handleApplyCoupon = () => {
     const coupon = mockCoupons.find(c => c.code === couponCode && c.is_active)
     if (coupon) {
       applyCoupon(coupon)
       setCouponCode('')
       setShowCouponInput(false)
+      success('Coupon applied', 'Coupon has been applied successfully')
     } else {
-      alert('优惠券无效或已过期')
+      error('Invalid coupon', 'Invalid or expired coupon code')
     }
   }
 
-  // 移除优惠券
+  // Remove coupon
   const handleRemoveCoupon = () => {
     removeCoupon()
+    success('Coupon removed', 'Coupon has been removed')
   }
 
-  // 提交订单
+  // Submit order
   const handleSubmitOrder = async () => {
     if (!selectedAddress) {
-      error('请选择收货地址', '请先选择一个收货地址后再提交订单')
+      error('Please select shipping address', 'Please select a shipping address before submitting the order')
       return
     }
 
     if (!selectedPaymentMethod) {
-      error('请选择支付方式', '请先选择一种支付方式后再提交订单')
+      error('Please select payment method', 'Please select a payment method before submitting the order')
       return
     }
 
     try {
-      const order = await createOrder({
+      const orderData = {
+        user_id: user!.id,
         items: selectedCartItems.map(item => ({
           product_id: item.product_id,
           quantity: item.quantity,
           price: item.product.price
         })),
-        shipping_address: selectedAddress,
+        shipping_address_id: selectedAddress.id,
         payment_method: selectedPaymentMethod.type,
-        coupon_code: appliedCoupon?.code
-      })
+        coupon_code: appliedCoupon?.code,
+        total_amount: orderSummary?.total_amount || 0,
+        shipping_fee: orderSummary?.shipping_fee || 0,
+        discount_amount: orderSummary?.discount_amount || 0
+      }
+
+      const order = await OrderService.createOrder(orderData)
 
       if (order) {
-        // 1. 清空当前用户的购物车所有商品
+        // 1. Clear all items from current user's cart
         clearCart()
         
-        // 2. 将订单数据同步至用户中心的"我的订单"模块
+        // 2. Sync order data to user center's "My Orders" module
         addOrderToHistory(order)
         
-        // 3. 确保订单数据与用户账号正确绑定（已在 createOrder 中处理）
+        // 3. Display success message
+        success('Order submitted successfully!', 'Your order has been created successfully, redirecting to order details page...')
         
-        // 4. 显示成功提示信息
-        success('订单提交成功！', '您的订单已成功创建，正在跳转到订单详情页面...')
-        
-        // 跳转到订单成功页面
-        navigate('/order-success', { state: { orderId: order.id, paymentMethod: selectedPaymentMethod.type, amount: orderSummary?.total_amount } })
+        // Redirect to order success page
+        navigate('/order-success', { 
+          state: { 
+            orderId: order.id, 
+            paymentMethod: selectedPaymentMethod.type, 
+            amount: orderSummary?.total_amount 
+          } 
+        })
       }
-    } catch (error) {
-      console.error('创建订单失败:', error)
-      error('订单提交失败', '创建订单时发生错误，请检查网络连接后重试')
+    } catch (err) {
+      console.error('Failed to create order:', err)
+      error('Order submission failed', 'An error occurred while creating the order, please check your network connection and try again')
     }
   }
 
@@ -143,13 +227,24 @@ const Checkout: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">请先登录</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in first</h2>
           <Link
             to="/login"
             className="inline-flex items-center px-6 py-3 bg-jade-600 text-white font-medium rounded-lg hover:bg-jade-700 transition-colors"
           >
-            去登录
+            Go to Login
           </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-jade-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading checkout information...</p>
         </div>
       </div>
     )
@@ -160,11 +255,11 @@ const Checkout: React.FC = () => {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav className="flex items-center space-x-2 text-sm">
-            <Link to="/" className="text-gray-500 hover:text-jade-600">首页</Link>
+            <Link to="/" className="text-gray-500 hover:text-jade-600">Home</Link>
             <span className="text-gray-400">/</span>
-            <Link to="/cart" className="text-gray-500 hover:text-jade-600">购物车</Link>
+            <Link to="/cart" className="text-gray-500 hover:text-jade-600">Shopping Cart</Link>
             <span className="text-gray-400">/</span>
-            <span className="text-gray-900">结算</span>
+            <span className="text-gray-900">Checkout</span>
           </nav>
         </div>
       </div>
@@ -177,7 +272,7 @@ const Checkout: React.FC = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">确认订单</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Confirm Order</h1>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -186,25 +281,25 @@ const Checkout: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                   <MapPin className="w-5 h-5 mr-2 text-jade-600" />
-                  收货地址
+                  Shipping Address
                 </h2>
                 <button
                   onClick={() => setShowAddressForm(true)}
                   className="flex items-center text-jade-600 hover:text-jade-700 text-sm"
                 >
                   <Plus className="w-4 h-4 mr-1" />
-                  新增地址
+                  Add Address
                 </button>
               </div>
 
               {userAddresses.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">暂无收货地址</p>
+                  <p className="text-gray-500 mb-4">No shipping address</p>
                   <button
                     onClick={() => setShowAddressForm(true)}
                     className="px-4 py-2 bg-jade-600 text-white rounded-lg hover:bg-jade-700 transition-colors"
                   >
-                    添加收货地址
+                    Add Shipping Address
                   </button>
                 </div>
               ) : (
@@ -226,7 +321,7 @@ const Checkout: React.FC = () => {
                             <span className="ml-2 text-gray-600">{address.phone}</span>
                             {address.is_default && (
                               <span className="ml-2 px-2 py-1 bg-jade-100 text-jade-600 text-xs rounded">
-                                默认
+                                Default
                               </span>
                             )}
                           </div>
@@ -250,7 +345,7 @@ const Checkout: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">商品清单</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Product List</h2>
               <div className="space-y-4">
                 {selectedCartItems.map((item) => (
                   <div key={item.id} className="flex items-center space-x-4">
@@ -286,7 +381,7 @@ const Checkout: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <CreditCard className="w-5 h-5 mr-2 text-jade-600" />
-                支付方式
+                Payment Method
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {paymentMethods.filter(method => method.enabled).map((method) => (
@@ -311,7 +406,7 @@ const Checkout: React.FC = () => {
                     <p className="text-sm text-gray-600">{method.description}</p>
                     {method.processing_fee > 0 && (
                       <p className="text-xs text-orange-600 mt-1">
-                        手续费: {(method.processing_fee * 100).toFixed(1)}%
+                        Processing fee: {(method.processing_fee * 100).toFixed(1)}%
                       </p>
                     )}
                   </div>
@@ -322,18 +417,18 @@ const Checkout: React.FC = () => {
 
           <div className="lg:w-80">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">订单摘要</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
 
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">优惠券</span>
+                  <span className="text-sm font-medium text-gray-700">Coupon</span>
                   {!appliedCoupon && (
                     <button
                       onClick={() => setShowCouponInput(!showCouponInput)}
                       className="text-jade-600 hover:text-jade-700 text-sm flex items-center"
                     >
                       <Tag className="w-4 h-4 mr-1" />
-                      使用优惠券
+                      Use Coupon
                     </button>
                   )}
                 </div>
@@ -348,7 +443,7 @@ const Checkout: React.FC = () => {
                       onClick={handleRemoveCoupon}
                       className="text-green-600 hover:text-green-700 text-sm"
                     >
-                      移除
+                      Remove
                     </button>
                   </div>
                 ) : showCouponInput && (
@@ -357,14 +452,14 @@ const Checkout: React.FC = () => {
                       type="text"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
-                      placeholder="请输入优惠券代码"
+                      placeholder="Enter coupon code"
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-jade-500 focus:border-jade-500 text-sm"
                     />
                     <button
                       onClick={handleApplyCoupon}
                       className="px-3 py-2 bg-jade-600 text-white rounded-lg hover:bg-jade-700 transition-colors text-sm"
                     >
-                      使用
+                      Apply
                     </button>
                   </div>
                 )}
@@ -372,20 +467,20 @@ const Checkout: React.FC = () => {
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">商品总价</span>
+                  <span className="text-gray-600">Subtotal</span>
                   <span className="text-gray-900">
                     ¥{orderSummary?.subtotal?.toLocaleString() || '0'}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">运费</span>
+                  <span className="text-gray-600">Shipping</span>
                   <span className="text-gray-900">
-                    {(orderSummary?.shipping_fee || 0) === 0 ? '免运费' : `¥${orderSummary?.shipping_fee}`}
+                    {(orderSummary?.shipping_fee || 0) === 0 ? 'Free' : `¥${orderSummary?.shipping_fee}`}
                   </span>
                 </div>
                 {selectedPaymentMethod?.processing_fee && selectedPaymentMethod.processing_fee > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">手续费</span>
+                    <span className="text-gray-600">Processing Fee</span>
                     <span className="text-gray-900">
                       ¥{((orderSummary?.subtotal || 0) * selectedPaymentMethod.processing_fee).toFixed(2)}
                     </span>
@@ -393,7 +488,7 @@ const Checkout: React.FC = () => {
                 )}
                 {(orderSummary?.discount_amount || 0) > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">优惠券折扣</span>
+                    <span className="text-gray-600">Coupon Discount</span>
                     <span className="text-green-600">
                       -¥{orderSummary?.discount_amount?.toLocaleString()}
                     </span>
@@ -401,7 +496,7 @@ const Checkout: React.FC = () => {
                 )}
                 <div className="border-t pt-3">
                   <div className="flex justify-between">
-                    <span className="text-lg font-semibold text-gray-900">应付总额</span>
+                    <span className="text-lg font-semibold text-gray-900">Total</span>
                     <span className="text-xl font-bold text-jade-600">
                       ¥{orderSummary?.total_amount?.toLocaleString() || '0'}
                     </span>
@@ -412,13 +507,13 @@ const Checkout: React.FC = () => {
               {selectedPaymentMethod?.type === 'balance' && user && (
                 <div className="mb-6 p-3 bg-jade-50 border border-jade-200 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-jade-700">账户余额</span>
+                    <span className="text-sm text-jade-700">Account Balance</span>
                     <span className="font-medium text-jade-800">
                       ¥{user.balance?.toLocaleString() || '0'}
                     </span>
                   </div>
                   {user.balance && orderSummary?.total_amount && user.balance < orderSummary.total_amount && (
-                    <p className="text-xs text-red-600 mt-1">余额不足，请选择其他支付方式</p>
+                    <p className="text-xs text-red-600 mt-1">Insufficient balance, please choose another payment method</p>
                   )}
                 </div>
               )}
@@ -436,19 +531,19 @@ const Checkout: React.FC = () => {
                 {checkoutLoading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    处理中...
+                    Processing...
                   </>
                 ) : (
-                  '提交订单'
+                  'Submit Order'
                 )}
               </button>
 
               <div className="mt-6 p-3 bg-gray-50 rounded-lg">
                 <div className="text-xs text-gray-600 space-y-1">
-                  <p>✓ 7天无理由退换</p>
-                  <p>✓ 正品保证</p>
-                  <p>✓ 安全支付</p>
-                  <p>✓ 快速发货</p>
+                  <p>✓ 7-day return policy</p>
+                  <p>✓ Authenticity guaranteed</p>
+                  <p>✓ Secure payment</p>
+                  <p>✓ Fast shipping</p>
                 </div>
               </div>
             </div>
@@ -456,7 +551,7 @@ const Checkout: React.FC = () => {
         </div>
       </div>
       
-      {/* Toast 通知 */}
+      {/* Toast Notifications */}
       {toasts.map(toast => (
         <Toast
           key={toast.id}

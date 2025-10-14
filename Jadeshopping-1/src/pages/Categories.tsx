@@ -1,10 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import CategoryCard from '@/components/CategoryCard';
-import { mockCategories, mockCategoryStats } from '@/data/mockData';
+import { CategoryService } from '@/services/productService';
 import { Category, CategoryFilters } from '@/types';
 
+const categoryService = new CategoryService();
+
 const Categories: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<CategoryFilters>({
     search: '',
     is_featured: undefined,
@@ -14,9 +19,30 @@ const Categories: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
   const [showSubcategories, setShowSubcategories] = useState(false);
 
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoading(true);
+        const result = await categoryService.getCategories();
+        if (result.success && result.data) {
+          setCategories(result.data);
+        } else {
+          setError(result.error || 'Failed to load categories');
+        }
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+        setError('Failed to load categories');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
   // 过滤和排序分类
   const filteredCategories = useMemo(() => {
-    let result = mockCategories.filter(category => {
+    let result = categories.filter(category => {
       // 搜索过滤
       if (filters.search) {
         const searchTerm = filters.search.toLowerCase();
@@ -69,7 +95,7 @@ const Categories: React.FC = () => {
     });
 
     return result;
-  }, [filters]);
+  }, [categories, filters]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters(prev => ({ ...prev, search: e.target.value }));
@@ -92,11 +118,40 @@ const Categories: React.FC = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-jade-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading categories...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Categories</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-jade-600 text-white px-6 py-2 rounded-lg hover:bg-jade-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <Helmet>
-        <title>商品分类 - 玉石商城</title>
-        <meta name="description" content="浏览我们丰富的玉石分类，包括和田玉、翡翠、玛瑙等各种精美玉石商品" />
+        <title>Product Categories - Jade Emporium</title>
+        <meta name="description" content="Browse our rich collection of jade categories, including Hetian jade, jadeite, agate and various exquisite jade products" />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
@@ -104,29 +159,31 @@ const Categories: React.FC = () => {
         <div className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">商品分类</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">Product Categories</h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                探索我们精心分类的玉石珍品，从传统和田玉到现代翡翠饰品，每一类都承载着深厚的文化底蕴
+                Explore our carefully curated jade treasures, from traditional Hetian jade to modern jadeite jewelry, each category carries profound cultural heritage
               </p>
             </div>
 
             {/* 统计信息 */}
             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{mockCategoryStats.total_categories}</div>
-                <div className="text-sm text-blue-700">总分类数</div>
+                <div className="text-2xl font-bold text-blue-600">{categories.length}</div>
+                <div className="text-sm text-blue-700">Total Categories</div>
               </div>
               <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-amber-600">{mockCategoryStats.featured_categories}</div>
-                <div className="text-sm text-amber-700">精选分类</div>
+                <div className="text-2xl font-bold text-amber-600">{categories.filter(c => c.is_featured).length}</div>
+                <div className="text-sm text-amber-700">Featured Categories</div>
               </div>
               <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{mockCategoryStats.categories_with_products}</div>
-                <div className="text-sm text-green-700">有商品分类</div>
+                <div className="text-2xl font-bold text-green-600">{categories.filter(c => c.product_count > 0).length}</div>
+                <div className="text-sm text-green-700">Categories with Products</div>
               </div>
               <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">{mockCategoryStats.average_products_per_category}</div>
-                <div className="text-sm text-purple-700">平均商品数</div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {categories.length > 0 ? Math.round(categories.reduce((sum, c) => sum + c.product_count, 0) / categories.length) : 0}
+                </div>
+                <div className="text-sm text-purple-700">Avg Products per Category</div>
               </div>
             </div>
           </div>
@@ -146,7 +203,7 @@ const Categories: React.FC = () => {
                   </div>
                   <input
                     type="text"
-                    placeholder="搜索分类名称、描述或标签..."
+                    placeholder="Search category names, descriptions or tags..."
                     value={filters.search}
                     onChange={handleSearchChange}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -164,7 +221,7 @@ const Categories: React.FC = () => {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  全部
+                  All
                 </button>
                 <button
                   onClick={() => handleFeaturedFilter(true)}
@@ -174,7 +231,7 @@ const Categories: React.FC = () => {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  精选分类
+                  Featured Categories
                 </button>
                 <button
                   onClick={() => handleFeaturedFilter(false)}
@@ -184,7 +241,7 @@ const Categories: React.FC = () => {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  普通分类
+                  Regular Categories
                 </button>
               </div>
             </div>
@@ -193,7 +250,7 @@ const Categories: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 pt-4 border-t border-gray-200">
               {/* 排序选项 */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">排序：</span>
+                <span className="text-sm text-gray-600">Sort by:</span>
                 <select
                   value={`${filters.sort}_${filters.order}`}
                   onChange={(e) => {
@@ -202,13 +259,13 @@ const Categories: React.FC = () => {
                   }}
                   className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="sort_order_asc">默认排序</option>
-                  <option value="name_asc">名称 A-Z</option>
-                  <option value="name_desc">名称 Z-A</option>
-                  <option value="product_count_desc">商品数量多到少</option>
-                  <option value="product_count_asc">商品数量少到多</option>
-                  <option value="created_at_desc">最新创建</option>
-                  <option value="created_at_asc">最早创建</option>
+                  <option value="sort_order_asc">Default Sort</option>
+                  <option value="name_asc">Name A-Z</option>
+                  <option value="name_desc">Name Z-A</option>
+                  <option value="product_count_desc">Most Products</option>
+                  <option value="product_count_asc">Least Products</option>
+                  <option value="created_at_desc">Newest First</option>
+                  <option value="created_at_asc">Oldest First</option>
                 </select>
               </div>
 
@@ -222,7 +279,7 @@ const Categories: React.FC = () => {
                     onChange={(e) => setShowSubcategories(e.target.checked)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  显示子分类
+                  Show Subcategories
                 </label>
 
                 {/* 视图模式切换 */}
@@ -232,7 +289,7 @@ const Categories: React.FC = () => {
                     className={`p-1.5 rounded-md transition-colors duration-200 ${
                       viewMode === 'grid' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title="网格视图"
+                    title="Grid View"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -243,7 +300,7 @@ const Categories: React.FC = () => {
                     className={`p-1.5 rounded-md transition-colors duration-200 ${
                       viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title="列表视图"
+                    title="List View"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
@@ -254,7 +311,7 @@ const Categories: React.FC = () => {
                     className={`p-1.5 rounded-md transition-colors duration-200 ${
                       viewMode === 'compact' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title="紧凑视图"
+                    title="Compact View"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z" clipRule="evenodd" />
@@ -271,7 +328,7 @@ const Categories: React.FC = () => {
                   onClick={clearFilters}
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  清除所有筛选条件
+                  Clear All Filters
                 </button>
               </div>
             )}
@@ -280,9 +337,9 @@ const Categories: React.FC = () => {
           {/* 结果统计 */}
           <div className="mb-6">
             <p className="text-sm text-gray-600">
-              找到 <span className="font-medium text-gray-900">{filteredCategories.length}</span> 个分类
+              Found <span className="font-medium text-gray-900">{filteredCategories.length}</span> categories
               {filters.search && (
-                <span>，搜索关键词：<span className="font-medium text-blue-600">"{filters.search}"</span></span>
+                <span>, search keyword: <span className="font-medium text-blue-600">"{filters.search}"</span></span>
               )}
             </p>
           </div>
@@ -310,15 +367,15 @@ const Categories: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.467-.881-6.08-2.33M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">未找到匹配的分类</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No matching categories found</h3>
               <p className="text-gray-600 mb-4">
-                {filters.search ? '尝试调整搜索关键词或' : ''}尝试调整筛选条件
+                {filters.search ? 'Try adjusting your search keywords or ' : ''}try adjusting your filter criteria
               </p>
               <button
                 onClick={clearFilters}
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
               >
-                清除筛选条件
+                Clear Filters
               </button>
             </div>
           )}

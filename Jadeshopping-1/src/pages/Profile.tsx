@@ -1,7 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useStore } from '@/store/useStore';
+import { orderService } from '@/services/orderService';
+import { toast } from 'sonner';
+import AddressManagement from '@/components/AddressManagement';
 import type { ProfileUpdateForm, PasswordChangeForm } from '@/types';
+
+interface Order {
+  id: string;
+  order_number: string;
+  status: string;
+  total_amount: number;
+  created_at: string;
+  payment_method: string;
+  order_items: {
+    id: string;
+    quantity: number;
+    price: number;
+    products: {
+      id: string;
+      name: string;
+      description: string;
+      image_url: string;
+    };
+  }[];
+}
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -19,13 +42,15 @@ const Profile: React.FC = () => {
     cart,
     getUserBalance,
     addBalance,
-    deductBalance,
-    orders,
-    ordersLoading,
-    fetchOrders
+    deductBalance
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'orders' | 'favorites' | 'balance'>('profile');
+  // Local state for orders
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'orders' | 'favorites' | 'balance' | 'addresses'>('profile');
   
   const [profileForm, setProfileForm] = useState<ProfileUpdateForm>({
     full_name: user?.full_name || '',
@@ -41,36 +66,36 @@ const Profile: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  // 余额管理相关状态
+  // Balance management related state
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [balanceLoading, setBalanceLoading] = useState(false);
 
-  // 如果未登录，重定向到登录页面
+  // If not logged in, redirect to login page
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
-  // 清除错误信息
+  // Clear error messages
   useEffect(() => {
     return () => {
       clearAuthError();
     };
   }, [clearAuthError]);
 
-  // 根据URL参数设置活动标签页
+  // Set active tab based on URL parameters
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['profile', 'password', 'orders', 'favorites', 'balance'].includes(tab)) {
-      setActiveTab(tab as 'profile' | 'password' | 'orders' | 'favorites' | 'balance');
+    if (tab && ['profile', 'password', 'orders', 'favorites', 'balance', 'addresses'].includes(tab)) {
+      setActiveTab(tab as 'profile' | 'password' | 'orders' | 'favorites' | 'balance' | 'addresses');
     }
   }, [searchParams]);
 
-  // 更新表单数据当用户信息变化时
+  // Update form data when user information changes
   useEffect(() => {
     if (user) {
       setProfileForm({
@@ -81,28 +106,47 @@ const Profile: React.FC = () => {
     }
   }, [user]);
 
-  // 获取用户订单数据
+  // Fetch user orders
+  const fetchOrders = async () => {
+    if (!user?.id) return;
+    
+    setOrdersLoading(true);
+    setOrdersError(null);
+    
+    try {
+      const userOrders = await orderService.getUserOrders(user.id);
+      setOrders(userOrders);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+      setOrdersError('Failed to load orders');
+      toast.error('Failed to load orders');
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  // Get user order data
   useEffect(() => {
     if (user && activeTab === 'orders') {
       fetchOrders();
     }
-  }, [user, activeTab, fetchOrders]);
+  }, [user, activeTab]);
 
   const validateProfileForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!profileForm.full_name) {
-      newErrors.full_name = '请输入姓名';
+      newErrors.full_name = 'Please enter your full name';
     } else if (profileForm.full_name.length < 2) {
-      newErrors.full_name = '姓名至少2个字符';
+      newErrors.full_name = 'Full name must be at least 2 characters';
     }
 
     if (profileForm.username && profileForm.username.length < 3) {
-      newErrors.username = '用户名至少3个字符';
+      newErrors.username = 'Username must be at least 3 characters';
     }
 
     if (profileForm.phone && !/^1[3-9]\d{9}$/.test(profileForm.phone)) {
-      newErrors.phone = '请输入有效的手机号码';
+      newErrors.phone = 'Please enter a valid phone number';
     }
 
     setErrors(newErrors);
@@ -113,19 +157,19 @@ const Profile: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!passwordForm.current_password) {
-      newErrors.current_password = '请输入当前密码';
+      newErrors.current_password = 'Please enter your current password';
     }
 
     if (!passwordForm.new_password) {
-      newErrors.new_password = '请输入新密码';
+      newErrors.new_password = 'Please enter your new password';
     } else if (passwordForm.new_password.length < 6) {
-      newErrors.new_password = '密码长度至少6位';
+      newErrors.new_password = 'Password must be at least 6 characters';
     }
 
     if (!passwordForm.confirm_password) {
-      newErrors.confirm_password = '请确认新密码';
+      newErrors.confirm_password = 'Please confirm your new password';
     } else if (passwordForm.new_password !== passwordForm.confirm_password) {
-      newErrors.confirm_password = '两次输入的密码不一致';
+      newErrors.confirm_password = 'Passwords do not match';
     }
 
     setErrors(newErrors);
@@ -139,7 +183,7 @@ const Profile: React.FC = () => {
       [name]: value,
     }));
 
-    // 清除对应字段的错误信息
+    // Clear corresponding field error messages
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -155,7 +199,7 @@ const Profile: React.FC = () => {
       [name]: value,
     }));
 
-    // 清除对应字段的错误信息
+    // Clear corresponding field error messages
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -196,15 +240,15 @@ const Profile: React.FC = () => {
     navigate('/', { replace: true });
   };
 
-  // 充值处理
+  // Recharge handling
   const handleRecharge = async () => {
     const amount = parseFloat(rechargeAmount);
     if (!amount || amount <= 0) {
-      setErrors(prev => ({ ...prev, recharge: '请输入有效的充值金额' }));
+      setErrors(prev => ({ ...prev, recharge: 'Please enter a valid recharge amount' }));
       return;
     }
     if (amount > 100000) {
-      setErrors(prev => ({ ...prev, recharge: '单次充值金额不能超过10万元' }));
+      setErrors(prev => ({ ...prev, recharge: 'Single recharge amount cannot exceed 100,000 yuan' }));
       return;
     }
 
@@ -216,36 +260,35 @@ const Profile: React.FC = () => {
       // 调用store的addBalance方法更新余额
       const success = addBalance(amount);
       if (!success) {
-        setErrors(prev => ({ ...prev, recharge: '充值失败，请重试' }));
+        setErrors(prev => ({ ...prev, recharge: 'Recharge failed, please try again' }));
         return;
       }
       
       setShowRechargeModal(false);
       setRechargeAmount('');
       setErrors(prev => ({ ...prev, recharge: '' }));
-      alert(`充值成功！已充值 ¥${amount.toLocaleString()}`);
+      alert(`Recharge successful! Recharged ¥${amount.toLocaleString()}`);
     } catch (error) {
-      setErrors(prev => ({ ...prev, recharge: '充值失败，请重试' }));
+      setErrors(prev => ({ ...prev, recharge: 'Recharge failed, please try again' }));
     } finally {
       setBalanceLoading(false);
     }
   };
 
-  // 提现处理
   const handleWithdraw = async () => {
     const amount = parseFloat(withdrawAmount);
     const currentBalance = getUserBalance();
     
     if (!amount || amount <= 0) {
-      setErrors(prev => ({ ...prev, withdraw: '请输入有效的提现金额' }));
+      setErrors(prev => ({ ...prev, withdraw: 'Please enter a valid withdrawal amount' }));
       return;
     }
     if (amount > currentBalance) {
-      setErrors(prev => ({ ...prev, withdraw: '提现金额不能超过账户余额' }));
+      setErrors(prev => ({ ...prev, withdraw: 'Withdrawal amount cannot exceed account balance' }));
       return;
     }
     if (amount < 10) {
-      setErrors(prev => ({ ...prev, withdraw: '最低提现金额为10元' }));
+      setErrors(prev => ({ ...prev, withdraw: 'Minimum withdrawal amount is 10 yuan' }));
       return;
     }
 
@@ -257,16 +300,16 @@ const Profile: React.FC = () => {
       // 扣除余额
       const success = deductBalance(amount);
       if (!success) {
-        setErrors(prev => ({ ...prev, withdraw: '提现失败，余额不足' }));
+        setErrors(prev => ({ ...prev, withdraw: 'Withdrawal failed, insufficient balance' }));
         return;
       }
       
       setShowWithdrawModal(false);
       setWithdrawAmount('');
       setErrors(prev => ({ ...prev, withdraw: '' }));
-      alert(`提现申请已提交！提现金额 ¥${amount.toLocaleString()}，预计1-3个工作日到账`);
+      alert(`Withdrawal request submitted! Withdrawal amount ¥${amount.toLocaleString()}, expected to arrive in 1-3 business days`);
     } catch (error) {
-      setErrors(prev => ({ ...prev, withdraw: '提现失败，请重试' }));
+      setErrors(prev => ({ ...prev, withdraw: 'Withdrawal failed, please try again' }));
     } finally {
       setBalanceLoading(false);
     }
@@ -277,17 +320,18 @@ const Profile: React.FC = () => {
   }
 
   const tabs = [
-    { id: 'profile', label: '个人信息', icon: '👤' },
-    { id: 'password', label: '修改密码', icon: '🔒' },
-    { id: 'orders', label: '订单历史', icon: '📦' },
-    { id: 'favorites', label: '我的收藏', icon: '❤️' },
-    { id: 'balance', label: '账户余额', icon: '💰' },
+    { id: 'profile', label: 'Personal Information', icon: '👤' },
+    { id: 'password', label: 'Change Password', icon: '🔒' },
+    { id: 'orders', label: 'Order History', icon: '📦' },
+    { id: 'favorites', label: 'My Favorites', icon: '❤️' },
+    { id: 'balance', label: 'Account Balance', icon: '💰' },
+    { id: 'addresses', label: 'Address Management', icon: '📍' },
   ] as const;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 用户信息头部 */}
+        {/* User information header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center space-x-4">
             <div className="h-16 w-16 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -312,13 +356,13 @@ const Profile: React.FC = () => {
               onClick={handleLogout}
               className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
             >
-              退出登录
+              Logout
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* 侧边栏导航 */}
+          {/* Sidebar navigation */}
           <div className="lg:col-span-1">
             <nav className="bg-white rounded-lg shadow-sm p-4">
               <ul className="space-y-2">
@@ -341,16 +385,16 @@ const Profile: React.FC = () => {
             </nav>
           </div>
 
-          {/* 主内容区域 */}
+          {/* Main content area */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-lg shadow-sm p-6">
               {activeTab === 'profile' && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">个人信息</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
                   <form onSubmit={handleProfileSubmit} className="space-y-4">
                     <div>
                       <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">
-                        姓名 *
+                        Full Name *
                       </label>
                       <input
                         id="full_name"
@@ -370,7 +414,7 @@ const Profile: React.FC = () => {
 
                     <div>
                       <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                        用户名
+                        Username
                       </label>
                       <input
                         id="username"
@@ -389,7 +433,7 @@ const Profile: React.FC = () => {
 
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                        手机号码
+                        Phone Number
                       </label>
                       <input
                         id="phone"
@@ -408,7 +452,7 @@ const Profile: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        邮箱地址
+                        Email Address
                       </label>
                       <input
                         type="email"
@@ -416,7 +460,7 @@ const Profile: React.FC = () => {
                         disabled
                         className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 sm:text-sm"
                       />
-                      <p className="mt-1 text-xs text-gray-500">邮箱地址不可修改</p>
+                      <p className="mt-1 text-xs text-gray-500">Email address cannot be modified</p>
                     </div>
 
                     {authError && (
@@ -427,7 +471,7 @@ const Profile: React.FC = () => {
                           </div>
                           <div className="ml-3">
                             <h3 className="text-sm font-medium text-red-800">
-                              更新失败
+                              Update Failed
                             </h3>
                             <div className="mt-2 text-sm text-red-700">
                               <p>{authError.message}</p>
@@ -443,7 +487,7 @@ const Profile: React.FC = () => {
                         disabled={authLoading}
                         className="w-full sm:w-auto px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        {authLoading ? '更新中...' : '保存更改'}
+                        {authLoading ? 'Updating...' : 'Save Changes'}
                       </button>
                     </div>
                   </form>
@@ -452,11 +496,11 @@ const Profile: React.FC = () => {
 
               {activeTab === 'password' && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">修改密码</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Change Password</h2>
                   <form onSubmit={handlePasswordSubmit} className="space-y-4">
                     <div>
                       <label htmlFor="current_password" className="block text-sm font-medium text-gray-700 mb-1">
-                        当前密码 *
+                        Current Password *
                       </label>
                       <input
                         id="current_password"
@@ -476,7 +520,7 @@ const Profile: React.FC = () => {
 
                     <div>
                       <label htmlFor="new_password" className="block text-sm font-medium text-gray-700 mb-1">
-                        新密码 *
+                        New Password *
                       </label>
                       <input
                         id="new_password"
@@ -496,7 +540,7 @@ const Profile: React.FC = () => {
 
                     <div>
                       <label htmlFor="confirm_password" className="block text-sm font-medium text-gray-700 mb-1">
-                        确认新密码 *
+                        Confirm New Password *
                       </label>
                       <input
                         id="confirm_password"
@@ -522,7 +566,7 @@ const Profile: React.FC = () => {
                           </div>
                           <div className="ml-3">
                             <h3 className="text-sm font-medium text-red-800">
-                              密码修改失败
+                              Password Change Failed
                             </h3>
                             <div className="mt-2 text-sm text-red-700">
                               <p>{authError.message}</p>
@@ -538,7 +582,7 @@ const Profile: React.FC = () => {
                         disabled={authLoading}
                         className="w-full sm:w-auto px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        {authLoading ? '修改中...' : '修改密码'}
+                        {authLoading ? 'Changing...' : 'Change Password'}
                       </button>
                     </div>
                   </form>
@@ -547,11 +591,11 @@ const Profile: React.FC = () => {
 
               {activeTab === 'orders' && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">订单历史</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Order History</h2>
                   {ordersLoading ? (
                     <div className="text-center py-12">
                       <div className="text-4xl mb-4">⏳</div>
-                      <p className="text-gray-500">加载订单数据中...</p>
+                      <p className="text-gray-500">Loading order data...</p>
                     </div>
                   ) : orders.length > 0 ? (
                     <div className="space-y-4">
@@ -559,8 +603,8 @@ const Profile: React.FC = () => {
                         <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 mb-4">
                             <div className="flex items-center space-x-4">
-                              <span className="text-sm text-gray-600">订单号：</span>
-                              <span className="font-mono text-sm font-medium text-gray-900">{order.id}</span>
+                              <span className="text-sm text-gray-600">Order Number:</span>
+                              <span className="font-mono text-sm font-medium text-gray-900">{order.order_number}</span>
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                                 order.status === 'delivered' ? 'bg-green-100 text-green-800' :
                                 order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
@@ -578,19 +622,19 @@ const Profile: React.FC = () => {
                           </div>
                           
                           <div className="space-y-3">
-                            {order.items.map((item) => (
+                            {order.order_items.map((item) => (
                               <div key={item.id} className="flex items-center space-x-4">
                                 <img
-                                  src={item.product.images?.[0] || '/images/placeholder.svg'}
-                                  alt={item.product.name}
+                                  src={item.products.image_url || '/placeholder-product.jpg'}
+                                  alt={item.products.name}
                                   className="w-16 h-16 object-cover rounded-md"
                                 />
                                 <div className="flex-1">
-                                  <h4 className="font-medium text-gray-900">{item.product.name}</h4>
-                                  <p className="text-sm text-gray-500">数量：{item.quantity}</p>
+                                  <h4 className="font-medium text-gray-900">{item.products.name}</h4>
+                                  <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="font-medium text-gray-900">¥{(item.unit_price * item.quantity).toLocaleString()}</p>
+                                  <p className="font-medium text-gray-900">¥{(item.price * item.quantity).toLocaleString()}</p>
                                 </div>
                               </div>
                             ))}
@@ -598,11 +642,11 @@ const Profile: React.FC = () => {
                           
                           <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-200">
                             <div className="text-sm text-gray-600">
-                              共 {order.items.reduce((sum, item) => sum + item.quantity, 0)} 件商品
+                              Total {order.order_items.reduce((sum, item) => sum + item.quantity, 0)} items
                             </div>
                             <div className="text-right">
                               <p className="text-lg font-semibold text-gray-900">
-                                总计：¥{order.total_amount.toLocaleString()}
+                                Total: ¥{order.total_amount.toLocaleString()}
                               </p>
                             </div>
                           </div>
@@ -612,13 +656,13 @@ const Profile: React.FC = () => {
                   ) : (
                     <div className="text-center py-12">
                       <div className="text-6xl mb-4">📦</div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">暂无订单</h3>
-                      <p className="text-gray-500 mb-6">您还没有任何订单记录</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Orders</h3>
+                      <p className="text-gray-500 mb-6">You haven't placed any orders yet</p>
                       <button
                         onClick={() => navigate('/products')}
                         className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
                       >
-                        去购物
+                        Start Shopping
                       </button>
                     </div>
                   )}
@@ -627,7 +671,7 @@ const Profile: React.FC = () => {
 
               {activeTab === 'favorites' && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">我的收藏</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">My Favorites</h2>
                   {favorites.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {favorites.map((product) => (
@@ -643,7 +687,7 @@ const Profile: React.FC = () => {
                             onClick={() => navigate(`/products/${product.id}`)}
                             className="mt-2 w-full px-3 py-1 text-sm bg-emerald-50 text-emerald-600 rounded hover:bg-emerald-100 transition-colors"
                           >
-                            查看详情
+                            View Details
                           </button>
                         </div>
                       ))}
@@ -651,13 +695,13 @@ const Profile: React.FC = () => {
                   ) : (
                     <div className="text-center py-12">
                       <div className="text-6xl mb-4">❤️</div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">暂无收藏</h3>
-                      <p className="text-gray-500 mb-6">您还没有收藏任何商品</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Favorites</h3>
+                      <p className="text-gray-500 mb-6">You haven't favorited any products yet</p>
                       <button
                         onClick={() => navigate('/products')}
                         className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
                       >
-                        去逛逛
+                        Browse Products
                       </button>
                     </div>
                   )}
@@ -666,62 +710,66 @@ const Profile: React.FC = () => {
 
               {activeTab === 'balance' && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">账户余额</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Balance</h2>
                   
-                  {/* 余额显示卡片 */}
+                  {/* Balance display card */}
                   <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg p-6 text-white mb-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-emerald-100 text-sm mb-1">当前余额</p>
+                        <p className="text-emerald-100 text-sm mb-1">Current Balance</p>
                         <p className="text-3xl font-bold">¥{getUserBalance().toLocaleString()}</p>
                       </div>
                       <div className="text-4xl opacity-80">💰</div>
                     </div>
                   </div>
 
-                  {/* 操作按钮 */}
+                  {/* Action buttons */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <button
                       onClick={() => setShowRechargeModal(true)}
                       className="flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                     >
                       <span className="text-lg mr-2">💳</span>
-                      充值
+                      Recharge
                     </button>
                     <button
                       onClick={() => setShowWithdrawModal(true)}
                       className="flex items-center justify-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                     >
                       <span className="text-lg mr-2">💸</span>
-                      提现
+                      Withdraw
                     </button>
                   </div>
 
-                  {/* 余额说明 */}
+                  {/* Balance information */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h3 className="text-sm font-medium text-blue-800 mb-2">余额说明</h3>
+                    <h3 className="text-sm font-medium text-blue-800 mb-2">Balance Information</h3>
                     <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• 余额可用于购买商品，方便快捷</li>
-                      <li>• 单次充值金额不超过10万元</li>
-                      <li>• 提现最低金额为10元，预计1-3个工作日到账</li>
-                      <li>• 余额安全由平台保障，请放心使用</li>
+                      <li>• Balance can be used to purchase products, convenient and fast</li>
+                      <li>• Single recharge amount cannot exceed 100,000 yuan</li>
+                      <li>• Minimum withdrawal amount is 10 yuan, expected to arrive in 1-3 business days</li>
+                      <li>• Balance security is guaranteed by the platform, please use with confidence</li>
                     </ul>
                   </div>
                 </div>
+              )}
+
+              {activeTab === 'addresses' && user && (
+                <AddressManagement userId={user.id} />
               )}
             </div>
           </div>
         </div>
 
-        {/* 充值模态框 */}
+        {/* Recharge modal */}
         {showRechargeModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">账户充值</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Recharge</h3>
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  充值金额
+                  Recharge Amount
                 </label>
                 <input
                   type="number"
@@ -730,7 +778,7 @@ const Profile: React.FC = () => {
                     setRechargeAmount(e.target.value);
                     setErrors(prev => ({ ...prev, recharge: '' }));
                   }}
-                  placeholder="请输入充值金额"
+                  placeholder="Enter recharge amount"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                 />
                 {errors.recharge && (
@@ -740,7 +788,7 @@ const Profile: React.FC = () => {
 
               <div className="mb-4">
                 <p className="text-sm text-gray-600">
-                  当前余额: ¥{getUserBalance().toLocaleString()}
+                  Current Balance: ¥{getUserBalance().toLocaleString()}
                 </p>
               </div>
 
@@ -753,29 +801,29 @@ const Profile: React.FC = () => {
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                 >
-                  取消
+                  Cancel
                 </button>
                 <button
                   onClick={handleRecharge}
                   disabled={balanceLoading}
                   className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {balanceLoading ? '充值中...' : '确认充值'}
+                  {balanceLoading ? 'Recharging...' : 'Confirm Recharge'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* 提现模态框 */}
+        {/* Withdraw modal */}
         {showWithdrawModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">账户提现</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Withdrawal</h3>
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  提现金额
+                  Withdrawal Amount
                 </label>
                 <input
                   type="number"
@@ -784,7 +832,7 @@ const Profile: React.FC = () => {
                     setWithdrawAmount(e.target.value);
                     setErrors(prev => ({ ...prev, withdraw: '' }));
                   }}
-                  placeholder="请输入提现金额"
+                  placeholder="Enter withdrawal amount"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                 />
                 {errors.withdraw && (
@@ -794,10 +842,10 @@ const Profile: React.FC = () => {
 
               <div className="mb-4">
                 <p className="text-sm text-gray-600">
-                  可提现余额: ¥{getUserBalance().toLocaleString()}
+                  Available Balance: ¥{getUserBalance().toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  最低提现金额10元，预计1-3个工作日到账
+                  Minimum withdrawal amount is 10 yuan, expected to arrive in 1-3 business days
                 </p>
               </div>
 
@@ -810,14 +858,14 @@ const Profile: React.FC = () => {
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                 >
-                  取消
+                  Cancel
                 </button>
                 <button
                   onClick={handleWithdraw}
                   disabled={balanceLoading}
                   className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {balanceLoading ? '提现中...' : '确认提现'}
+                  {balanceLoading ? 'Withdrawing...' : 'Confirm Withdrawal'}
                 </button>
               </div>
             </div>
