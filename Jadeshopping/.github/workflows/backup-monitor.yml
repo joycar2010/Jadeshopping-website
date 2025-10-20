@@ -1,0 +1,123 @@
+name: 备份状态监控
+
+on:
+  schedule:
+    # 每天检查备份状态
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor-backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+      
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 检查最近备份状态
+      id: check-backup
+      run: |
+        # 获取最近的备份工作流运行状态
+        BACKUP_STATUS=$(gh api repos/${{ github.repository }}/actions/workflows/backup.yml/runs --jq '.workflow_runs[0].conclusion' || echo "unknown")
+        BACKUP_DATE=$(gh api repos/${{ github.repository }}/actions/workflows/backup.yml/runs --jq '.workflow_runs[0].created_at' || echo "unknown")
+        
+        echo "backup_status=$BACKUP_STATUS" >> $GITHUB_OUTPUT
+        echo "backup_date=$BACKUP_DATE" >> $GITHUB_OUTPUT
+        
+        # 检查备份分支
+        BACKUP_BRANCHES=$(git ls-remote --heads origin | grep backup- | wc -l)
+        echo "backup_branches=$BACKUP_BRANCHES" >> $GITHUB_OUTPUT
+        
+        # 检查最新备份分支日期
+        LATEST_BACKUP=$(git ls-remote --heads origin | grep backup- | sort | tail -1 | sed 's/.*backup-//')
+        echo "latest_backup=$LATEST_BACKUP" >> $GITHUB_OUTPUT
+        
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 生成监控报告
+      run: |
+        echo "# 备份状态监控报告" > backup-report.md
+        echo "生成时间: $(date)" >> backup-report.md
+        echo "" >> backup-report.md
+        
+        echo "## 备份工作流状态" >> backup-report.md
+        echo "- 最近备份状态: ${{ steps.check-backup.outputs.backup_status }}" >> backup-report.md
+        echo "- 最近备份时间: ${{ steps.check-backup.outputs.backup_date }}" >> backup-report.md
+        echo "" >> backup-report.md
+        
+        echo "## 备份分支统计" >> backup-report.md
+        echo "- 备份分支总数: ${{ steps.check-backup.outputs.backup_branches }}" >> backup-report.md
+        echo "- 最新备份分支: backup-${{ steps.check-backup.outputs.latest_backup }}" >> backup-report.md
+        echo "" >> backup-report.md
+        
+        # 检查备份健康状态
+        if [ "${{ steps.check-backup.outputs.backup_status }}" = "success" ]; then
+          echo "## 健康状态: ✅ 正常" >> backup-report.md
+        elif [ "${{ steps.check-backup.outputs.backup_status }}" = "failure" ]; then
+          echo "## 健康状态: ❌ 异常" >> backup-report.md
+          echo "最近备份失败，需要检查备份工作流" >> backup-report.md
+        else
+          echo "## 健康状态: ⚠️ 未知" >> backup-report.md
+          echo "无法获取备份状态信息" >> backup-report.md
+        fi
+        
+    - name: 创建问题报告 (如果备份失败)
+      if: steps.check-backup.outputs.backup_status == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `🚨 备份失败警报 - ${new Date().toISOString().split('T')[0]}`;
+          const body = `
+          ## 备份失败通知
+          
+          **时间**: ${new Date().toLocaleString('zh-CN')}
+          **状态**: 备份工作流执行失败
+          **最近备份时间**: ${{ steps.check-backup.outputs.backup_date }}
+          
+          ### 需要检查的项目
+          - [ ] 检查备份工作流日志
+          - [ ] 验证 GitHub Actions 权限
+          - [ ] 检查存储空间
+          - [ ] 验证依赖安装
+          
+          ### 相关链接
+          - [备份工作流](https://github.com/${{ github.repository }}/actions/workflows/backup.yml)
+          - [最近运行记录](https://github.com/${{ github.repository }}/actions)
+          
+          ---
+          *此问题由备份监控系统自动创建*
+          `;
+          
+          // 检查是否已存在相同的问题
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: ['backup-alert']
+          });
+          
+          const hasExistingAlert = existingIssues.data.some(issue => 
+            issue.title.includes('备份失败警报')
+          );
+          
+          if (!hasExistingAlert) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['backup-alert', 'bug', 'high-priority']
+            });
+          }
+          
+    - name: 上传监控报告
+      uses: actions/upload-artifact@v4
+      with:
+        name: backup-monitor-report-${{ github.run_number }}
+        path: backup-report.md
+        retention-days: 30
