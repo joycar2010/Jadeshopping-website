@@ -94,7 +94,7 @@ const Footer: React.FC = () => {
           ))}
         </div>
 
-        {/* 社交媒体和支付方式 */}
+        {/* 社交媒体 */}
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             {/* 社交媒体 */}
@@ -132,21 +132,7 @@ const Footer: React.FC = () => {
               </div>
             </div>
 
-            {/* 支付方式 */}
-            <div className="flex items-center space-x-6">
-              <span className="text-sm text-gray-300">支付方式:</span>
-              <div className="flex space-x-3">
-                <div className="w-8 h-6 bg-gray-700 rounded flex items-center justify-center text-xs">
-                  支付宝
-                </div>
-                <div className="w-8 h-6 bg-gray-700 rounded flex items-center justify-center text-xs">
-                  微信
-                </div>
-                <div className="w-8 h-6 bg-gray-700 rounded flex items-center justify-center text-xs">
-                  银联
-                </div>
-              </div>
-            </div>
+
           </div>
         </div>
 

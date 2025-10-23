@@ -1,46 +1,398 @@
-import React, { useState } from 'react';
-import { User, Lock, Shield, Bell, Eye, EyeOff, Edit } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
+import { 
+  Search, 
+  Package, 
+  Eye, 
+  EyeOff,
+  X, 
+  CheckCircle, 
+  ShoppingCart,
+  User,
+  Wallet,
+  Heart,
+  HelpCircle,
+  Settings as SettingsIcon,
+  LogOut,
+  ChevronRight,
+  ChevronDown,
+  MapPin,
+  Phone,
+  Mail,
+  Shield,
+  Gift,
+  Award,
+  Bell,
+  Menu,
+  Edit,
+  Download,
+  Trash2,
+  AlertTriangle
+} from 'lucide-react';
 
 const Settings: React.FC = () => {
-  const { user, updateUser } = useUserStore();
-  const [activeTab, setActiveTab] = useState('profile');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-
-  const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    avatar: user?.avatar || '',
-    gender: user?.gender || '',
-    birthday: user?.birthday || ''
-  });
-
+  const { user, logout } = useUserStore();
+  const navigate = useNavigate();
+  
+  // 状态管理
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [activeNavItem, setActiveNavItem] = useState('account');
+  const [expandedNavItems, setExpandedNavItems] = useState<string[]>(['account']);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: false,
-    loginNotification: true,
-    deviceManagement: true
-  });
+  // 检查用户登录状态
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
-  const [notificationSettings, setNotificationSettings] = useState({
-    orderUpdates: true,
-    promotions: false,
-    newsletter: false,
-    smsNotifications: true,
-    emailNotifications: true
-  });
+  // 左侧导航配置
+  const navigationItems = [
+    {
+      id: 'account',
+      title: 'My Account',
+      icon: User,
+      items: [
+        { id: 'profile', title: '个人资料', link: '/settings' },
+        { id: 'address', title: '地址簿', link: '/address' }
+      ]
+    },
+    {
+      id: 'assets',
+      title: 'My Assets',
+      icon: Wallet,
+      items: [
+        { id: 'coupons', title: '我的优惠券', link: '/settings' },
+        { id: 'points', title: '我的积分', link: '/settings' },
+        { id: 'wallet', title: '我的钱包', link: '/settings' },
+        { id: 'gift-cards', title: '礼品卡', link: '/settings' }
+      ]
+    },
+    {
+      id: 'orders',
+      title: 'My Orders',
+      icon: Package,
+      items: [
+        { id: 'all-orders', title: '所有订单', link: '/orders' },
+        { id: 'unpaid-orders', title: '待付款订单', link: '/orders?tab=unpaid' },
+        { id: 'processing-orders', title: '处理中订单', link: '/orders?tab=processing' },
+        { id: 'shipped-orders', title: '已发货订单', link: '/orders?tab=shipped' },
+        { id: 'review-orders', title: '待评价订单', link: '/orders?tab=review' },
+        { id: 'return-orders', title: '退货订单', link: '/orders?tab=return' }
+      ]
+    },
+    {
+      id: 'favorites',
+      title: 'My Favorites',
+      icon: Heart,
+      items: [
+        { id: 'wishlist', title: '心愿单', link: '/favorites' },
+        { id: 'recently-viewed', title: '最近浏览', link: '/settings' },
+        { id: 'following', title: '关注', link: '/settings' }
+      ]
+    },
+    {
+      id: 'service',
+      title: 'Customer Service',
+      icon: HelpCircle,
+      items: [
+        { id: 'help-center', title: '帮助中心', link: '/help' },
+        { id: 'contact-us', title: '联系我们', link: '/contact' },
+        { id: 'live-chat', title: '在线客服', link: '/chat' }
+      ]
+    },
+    {
+      id: 'other',
+      title: 'Other Services',
+      icon: SettingsIcon,
+      items: [
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [successMessage, setSuccessMessage] = useState('');
+        { id: 'survey', title: '调查中心', link: '/survey' },
+        { id: 'feedback', title: '意见反馈', link: '/feedback' }
+      ]
+    },
+    {
+      id: 'policy',
+      title: 'Policy',
+      icon: Shield,
+      items: [
+        { id: 'shipping', title: '配送政策', link: '/policy/shipping' },
+        { id: 'return', title: '退货政策', link: '/policy/return' },
+        { id: 'privacy', title: '隐私政策', link: '/policy/privacy' },
+        { id: 'terms', title: '服务条款', link: '/policy/terms' }
+      ]
+    }
+  ];
+
+  // 切换导航项展开状态
+  const toggleNavItem = (itemId: string) => {
+    setExpandedNavItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  // 处理登出
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  // 处理密码修改
+  const handlePasswordChange = () => {
+    // 这里应该调用API进行密码修改
+    console.log('修改密码:', passwordData);
+    setShowPasswordModal(false);
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
+
+  // 处理账户删除
+  const handleDeleteAccount = () => {
+    // 这里应该调用API进行账户删除
+    console.log('删除账户');
+    setShowDeleteModal(false);
+  };
+
+  // 处理下载个人信息
+  const handleDownloadInfo = () => {
+    // 这里应该调用API下载个人信息
+    console.log('下载个人信息');
+    setShowDownloadModal(false);
+  };
+
+  // 密码修改模态框
+  const PasswordModal = () => (
+    showPasswordModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowPasswordModal(false)}>
+        <div className="bg-white rounded-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold">Change Password</h3>
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Current Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent pr-10"
+                  placeholder="Enter current password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                New Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent pr-10"
+                  placeholder="Enter new password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm New Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent pr-10"
+                  placeholder="Confirm new password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <button
+                onClick={handlePasswordChange}
+                className="flex-1 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                CHANGE PASSWORD
+              </button>
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  // 删除账户确认模态框
+  const DeleteModal = () => (
+    showDeleteModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowDeleteModal(false)}>
+        <div className="bg-white rounded-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-red-600">Delete Account</h3>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+              <div>
+                <h4 className="font-semibold text-gray-900">Are you sure?</h4>
+                <p className="text-sm text-gray-600">This action cannot be undone.</p>
+              </div>
+            </div>
+            
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-red-800">
+                <strong>NOTE:</strong> Account will NOT BE RECOVERABLE once deleted.
+              </p>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleDeleteAccount}
+                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                DELETE ACCOUNT
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  // 下载信息确认模态框
+  const DownloadModal = () => (
+    showDownloadModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowDownloadModal(false)}>
+        <div className="bg-white rounded-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold">Download Your Information</h3>
+              <button
+                onClick={() => setShowDownloadModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="mb-4">
+              <p className="text-gray-700 mb-3">
+                We'll prepare a copy of your personal data for download. This may take a few minutes.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  For security purposes, we may need to verify your identity before processing this request.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleDownloadInfo}
+                className="flex-1 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                DOWNLOAD
+              </button>
+              <button
+                onClick={() => setShowDownloadModal(false)}
+                className="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  );
 
   if (!user) {
     return (
@@ -50,518 +402,231 @@ const Settings: React.FC = () => {
             <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-600 mb-2">请先登录</h2>
             <p className="text-gray-500 mb-8">登录后管理账户设置</p>
-            <button className="btn-primary">
+            <Link to="/login" className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors">
               去登录
-            </button>
+            </Link>
           </div>
         </div>
       </div>
     );
   }
 
-  const tabs = [
-    { key: 'profile', label: '个人信息', icon: User },
-    { key: 'password', label: '密码修改', icon: Lock },
-    { key: 'security', label: '安全设置', icon: Shield },
-    { key: 'notifications', label: '通知设置', icon: Bell }
-  ];
-
-  const validateProfile = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!profileData.name.trim()) {
-      newErrors.name = '请输入姓名';
-    }
-
-    if (!profileData.email.trim()) {
-      newErrors.email = '请输入邮箱';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileData.email)) {
-      newErrors.email = '请输入正确的邮箱格式';
-    }
-
-    if (profileData.phone && !/^1[3-9]\d{9}$/.test(profileData.phone)) {
-      newErrors.phone = '请输入正确的手机号码';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validatePassword = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!passwordData.currentPassword) {
-      newErrors.currentPassword = '请输入当前密码';
-    }
-
-    if (!passwordData.newPassword) {
-      newErrors.newPassword = '请输入新密码';
-    } else if (passwordData.newPassword.length < 6) {
-      newErrors.newPassword = '密码至少6位字符';
-    }
-
-    if (!passwordData.confirmPassword) {
-      newErrors.confirmPassword = '请确认新密码';
-    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      newErrors.confirmPassword = '两次输入的密码不一致';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleProfileSave = () => {
-    if (!validateProfile()) {
-      return;
-    }
-
-    // 模拟保存个人信息
-    updateUser(profileData);
-    setSuccessMessage('个人信息已更新');
-    setIsEditing(false);
-    setTimeout(() => setSuccessMessage(''), 3000);
-  };
-
-  const handlePasswordChange = () => {
-    if (!validatePassword()) {
-      return;
-    }
-
-    // 模拟密码修改
-    setSuccessMessage('密码修改成功');
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    setTimeout(() => setSuccessMessage(''), 3000);
-  };
-
-  const handleSettingsSave = (type: string) => {
-    setSuccessMessage(`${type}设置已保存`);
-    setTimeout(() => setSuccessMessage(''), 3000);
-  };
-
-  const ProfileTab = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">个人信息</h3>
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="flex items-center space-x-1 px-4 py-2 border border-primary-500 text-primary-500 rounded-lg hover:bg-primary-50 transition-colors"
-        >
-          <Edit className="h-4 w-4" />
-          <span>{isEditing ? '取消编辑' : '编辑信息'}</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            姓名 *
-          </label>
-          <input
-            type="text"
-            value={profileData.name}
-            onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-            disabled={!isEditing}
-            className={`input-field ${errors.name ? 'border-red-500' : ''} ${!isEditing ? 'bg-gray-50' : ''}`}
-            placeholder="请输入姓名"
-          />
-          {errors.name && (
-            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            邮箱 *
-          </label>
-          <input
-            type="email"
-            value={profileData.email}
-            onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-            disabled={!isEditing}
-            className={`input-field ${errors.email ? 'border-red-500' : ''} ${!isEditing ? 'bg-gray-50' : ''}`}
-            placeholder="请输入邮箱"
-          />
-          {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            手机号码
-          </label>
-          <input
-            type="tel"
-            value={profileData.phone}
-            onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-            disabled={!isEditing}
-            className={`input-field ${errors.phone ? 'border-red-500' : ''} ${!isEditing ? 'bg-gray-50' : ''}`}
-            placeholder="请输入手机号码"
-          />
-          {errors.phone && (
-            <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            性别
-          </label>
-          <select
-            value={profileData.gender}
-            onChange={(e) => setProfileData({ ...profileData, gender: e.target.value })}
-            disabled={!isEditing}
-            className={`input-field ${!isEditing ? 'bg-gray-50' : ''}`}
-          >
-            <option value="">请选择性别</option>
-            <option value="male">男</option>
-            <option value="female">女</option>
-            <option value="other">其他</option>
-          </select>
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            生日
-          </label>
-          <input
-            type="date"
-            value={profileData.birthday}
-            onChange={(e) => setProfileData({ ...profileData, birthday: e.target.value })}
-            disabled={!isEditing}
-            className={`input-field ${!isEditing ? 'bg-gray-50' : ''}`}
-          />
-        </div>
-      </div>
-
-      {isEditing && (
-        <div className="flex space-x-3">
-          <button
-            onClick={handleProfileSave}
-            className="btn-primary"
-          >
-            保存修改
-          </button>
-          <button
-            onClick={() => setIsEditing(false)}
-            className="btn-secondary"
-          >
-            取消
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
-  const PasswordTab = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold">密码修改</h3>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            当前密码 *
-          </label>
-          <div className="relative">
-            <input
-              type={showCurrentPassword ? 'text' : 'password'}
-              value={passwordData.currentPassword}
-              onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-              className={`input-field pr-10 ${errors.currentPassword ? 'border-red-500' : ''}`}
-              placeholder="请输入当前密码"
-            />
-            <button
-              type="button"
-              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            >
-              {showCurrentPassword ? (
-                <EyeOff className="h-4 w-4 text-gray-400" />
-              ) : (
-                <Eye className="h-4 w-4 text-gray-400" />
-              )}
-            </button>
-          </div>
-          {errors.currentPassword && (
-            <p className="text-red-500 text-sm mt-1">{errors.currentPassword}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            新密码 *
-          </label>
-          <div className="relative">
-            <input
-              type={showNewPassword ? 'text' : 'password'}
-              value={passwordData.newPassword}
-              onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-              className={`input-field pr-10 ${errors.newPassword ? 'border-red-500' : ''}`}
-              placeholder="请输入新密码"
-            />
-            <button
-              type="button"
-              onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            >
-              {showNewPassword ? (
-                <EyeOff className="h-4 w-4 text-gray-400" />
-              ) : (
-                <Eye className="h-4 w-4 text-gray-400" />
-              )}
-            </button>
-          </div>
-          {errors.newPassword && (
-            <p className="text-red-500 text-sm mt-1">{errors.newPassword}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            确认新密码 *
-          </label>
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? 'text' : 'password'}
-              value={passwordData.confirmPassword}
-              onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-              className={`input-field pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
-              placeholder="请再次输入新密码"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4 text-gray-400" />
-              ) : (
-                <Eye className="h-4 w-4 text-gray-400" />
-              )}
-            </button>
-          </div>
-          {errors.confirmPassword && (
-            <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
-          )}
-        </div>
-      </div>
-
-      <button
-        onClick={handlePasswordChange}
-        className="btn-primary"
-      >
-        修改密码
-      </button>
-    </div>
-  );
-
-  const SecurityTab = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold">安全设置</h3>
-      
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="font-medium">双重认证</h4>
-            <p className="text-sm text-gray-600">为账户添加额外的安全保护</p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={securitySettings.twoFactorAuth}
-              onChange={(e) => setSecuritySettings({ ...securitySettings, twoFactorAuth: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="font-medium">登录通知</h4>
-            <p className="text-sm text-gray-600">新设备登录时发送通知</p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={securitySettings.loginNotification}
-              onChange={(e) => setSecuritySettings({ ...securitySettings, loginNotification: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="font-medium">设备管理</h4>
-            <p className="text-sm text-gray-600">管理已登录的设备</p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={securitySettings.deviceManagement}
-              onChange={(e) => setSecuritySettings({ ...securitySettings, deviceManagement: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-          </label>
-        </div>
-      </div>
-
-      <button
-        onClick={() => handleSettingsSave('安全')}
-        className="btn-primary"
-      >
-        保存设置
-      </button>
-    </div>
-  );
-
-  const NotificationsTab = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold">通知设置</h3>
-      
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="font-medium">订单更新</h4>
-            <p className="text-sm text-gray-600">订单状态变化时发送通知</p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={notificationSettings.orderUpdates}
-              onChange={(e) => setNotificationSettings({ ...notificationSettings, orderUpdates: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="font-medium">促销活动</h4>
-            <p className="text-sm text-gray-600">接收促销和优惠信息</p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={notificationSettings.promotions}
-              onChange={(e) => setNotificationSettings({ ...notificationSettings, promotions: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="font-medium">短信通知</h4>
-            <p className="text-sm text-gray-600">通过短信接收重要通知</p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={notificationSettings.smsNotifications}
-              onChange={(e) => setNotificationSettings({ ...notificationSettings, smsNotifications: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-          <div>
-            <h4 className="font-medium">邮件通知</h4>
-            <p className="text-sm text-gray-600">通过邮件接收通知</p>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={notificationSettings.emailNotifications}
-              onChange={(e) => setNotificationSettings({ ...notificationSettings, emailNotifications: e.target.checked })}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-          </label>
-        </div>
-      </div>
-
-      <button
-        onClick={() => handleSettingsSave('通知')}
-        className="btn-primary"
-      >
-        保存设置
-      </button>
-    </div>
-  );
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'profile':
-        return <ProfileTab />;
-      case 'password':
-        return <PasswordTab />;
-      case 'security':
-        return <SecurityTab />;
-      case 'notifications':
-        return <NotificationsTab />;
-      default:
-        return <ProfileTab />;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">账户设置</h1>
+      {/* 页头 */}
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+        {/* 页头内容已被移除，保持空的header容器 */}
+      </header>
 
-        {/* 成功消息 */}
-        {successMessage && (
-          <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-            {successMessage}
-          </div>
-        )}
+      {/* 主体内容 */}
+      <div className="flex">
+        {/* 左侧导航栏 */}
+        <aside className={`bg-white shadow-sm transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-80'} min-h-screen border-r border-gray-200`}>
+          <div className="p-4">
+            {/* 菜单切换按钮 */}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors mb-6"
+            >
+              <Menu className="h-5 w-5 text-gray-600" />
+            </button>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* 侧边栏 */}
-          <div className="lg:w-1/4">
-            <div className="card p-4">
-              <nav className="space-y-2">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
+            {/* 导航菜单 */}
+            <nav className="space-y-2">
+              {navigationItems.map((section) => {
+                const Icon = section.icon;
+                const isExpanded = expandedNavItems.includes(section.id);
+                
+                return (
+                  <div key={section.id}>
                     <button
-                      key={tab.key}
-                      onClick={() => setActiveTab(tab.key)}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                        activeTab === tab.key
-                          ? 'bg-primary-500 text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
+                      onClick={() => toggleNavItem(section.id)}
+                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                        section.id === activeNavItem ? 'bg-gray-100' : 'hover:bg-gray-50'
                       }`}
                     >
-                      <Icon className="h-5 w-5" />
-                      <span>{tab.label}</span>
+                      <div className="flex items-center space-x-3">
+                        <Icon className="h-5 w-5 text-gray-600" />
+                        {!sidebarCollapsed && (
+                          <span className="font-medium text-gray-900">{section.title}</span>
+                        )}
+                      </div>
+                      {!sidebarCollapsed && (
+                        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${
+                          isExpanded ? 'rotate-180' : ''
+                        }`} />
+                      )}
                     </button>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
+                    
+                    {!sidebarCollapsed && isExpanded && (
+                      <div className="ml-8 mt-2 space-y-1">
+                        {section.items.map((item) => (
+                          <Link
+                            key={item.id}
+                            to={item.link}
+                            className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
+                              item.active ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            {item.title}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
 
-          {/* 主内容区 */}
-          <div className="lg:w-3/4">
-            <div className="card p-6">
-              {renderTabContent()}
+            {/* 退出登录 */}
+            {!sidebarCollapsed && (
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center space-x-3 p-3 mt-8 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">Sign Out</span>
+              </button>
+            )}
+          </div>
+        </aside>
+
+        {/* 右侧主内容区 */}
+        <main className="flex-1 p-8">
+          <div className="max-w-4xl">
+            {/* 页面标题 */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">MANAGE MY ACCOUNT</h1>
+              <p className="text-gray-600">Manage your account information and security settings</p>
+            </div>
+
+            {/* 账户信息管理 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Information</h2>
+                
+                <div className="space-y-6">
+                  {/* 邮箱管理 */}
+                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <h3 className="font-medium text-gray-900">Email</h3>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                        <p className="text-xs text-green-600 mt-1">Verified • +100 Points</p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                        CHANGE
+                      </button>
+                      <button className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
+                        VERIFY NOW
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 手机号管理 */}
+                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Phone className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <h3 className="font-medium text-gray-900">Phone Number</h3>
+                        <p className="text-sm text-gray-600">
+                          {user.phone || 'Not added'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          You can log in directly with your phone number after binding
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                        {user.phone ? 'CHANGE' : 'ADD'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 密码修改 */}
+                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Shield className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <h3 className="font-medium text-gray-900">Change Password</h3>
+                        <p className="text-sm text-gray-600">Update your account password</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowPasswordModal(true)}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                    >
+                      CHANGE
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 账户操作 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Actions</h2>
+                
+                <div className="space-y-6">
+                  {/* 下载个人信息 */}
+                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Download className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <h3 className="font-medium text-gray-900">Download Your Information</h3>
+                        <p className="text-sm text-gray-600">
+                          Get a copy of your personal data
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          We may need to verify your identity for security purposes
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowDownloadModal(true)}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                    >
+                      DOWNLOAD
+                    </button>
+                  </div>
+
+                  {/* 删除账户 */}
+                  <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                    <div className="flex items-center space-x-4">
+                      <Trash2 className="h-5 w-5 text-red-500" />
+                      <div>
+                        <h3 className="font-medium text-red-900">Delete Account</h3>
+                        <p className="text-sm text-red-700">
+                          Permanently delete your account and all data
+                        </p>
+                        <p className="text-xs text-red-600 mt-1 font-medium">
+                          NOTE: Account will NOT BE RECOVERABLE once deleted.
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowDeleteModal(true)}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                    >
+                      DELETE
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
+
+      {/* 模态框 */}
+      <PasswordModal />
+      <DeleteModal />
+      <DownloadModal />
     </div>
   );
 };

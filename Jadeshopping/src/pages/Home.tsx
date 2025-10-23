@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Star, Shield, Truck, Award } from 'lucide-react';
+import { ChevronRight, Star, Shield, Truck, Award, Heart, ShoppingCart, Plus, Eye, Filter, Grid, List } from 'lucide-react';
+import { useCartStore } from '../store/useCartStore';
+import { useFavoritesStore } from '../store/useFavoritesStore';
 
 const Home: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { addItem } = useCartStore();
+  const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+
   // 轮播图数据
   const bannerSlides = [
     {
@@ -38,32 +44,36 @@ const Home: React.FC = () => {
       name: '和田玉',
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20hetian%20jade%20carved%20pendant%20with%20traditional%20Chinese%20design&image_size=square',
       description: '温润如脂，君子之石',
-      link: '/products?category=hetian'
+      link: '/products?category=hetian',
+      count: '1200+ 商品'
     },
     {
       id: 2,
       name: '翡翠',
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20jadeite%20bracelet%20with%20natural%20patterns%20and%20high%20transparency&image_size=square',
       description: '翠绿欲滴，富贵吉祥',
-      link: '/products?category=jadeite'
+      link: '/products?category=jadeite',
+      count: '800+ 商品'
     },
     {
       id: 3,
       name: '玛瑙',
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=colorful%20agate%20beads%20necklace%20with%20natural%20banding%20patterns&image_size=square',
       description: '色彩斑斓，护身辟邪',
-      link: '/products?category=agate'
+      link: '/products?category=agate',
+      count: '600+ 商品'
     },
     {
       id: 4,
       name: '水晶',
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=clear%20crystal%20sphere%20with%20rainbow%20reflections%20on%20elegant%20stand&image_size=square',
       description: '晶莹剔透，净化心灵',
-      link: '/products?category=crystal'
+      link: '/products?category=crystal',
+      count: '400+ 商品'
     }
   ];
 
-  // 热销商品数据
+  // 热销商品数据 - 更多商品，更密集布局
   const hotProducts = [
     {
       id: 1,
@@ -73,7 +83,8 @@ const Home: React.FC = () => {
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20hetian%20jade%20guanyin%20pendant%20with%20detailed%20carving%20and%20gold%20chain&image_size=square',
       rating: 4.9,
       sales: 1256,
-      tag: '热销'
+      tag: '热销',
+      discount: '10%'
     },
     {
       id: 2,
@@ -83,7 +94,8 @@ const Home: React.FC = () => {
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20myanmar%20jadeite%20bangle%20with%20natural%20color%20variations&image_size=square',
       rating: 4.8,
       sales: 892,
-      tag: '精品'
+      tag: '精品',
+      discount: '8%'
     },
     {
       id: 3,
@@ -93,7 +105,8 @@ const Home: React.FC = () => {
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=red%20agate%20ring%20with%20silver%20setting%20and%20elegant%20design&image_size=square',
       rating: 4.7,
       sales: 654,
-      tag: '新品'
+      tag: '新品',
+      discount: '12%'
     },
     {
       id: 4,
@@ -103,9 +116,83 @@ const Home: React.FC = () => {
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=purple%20amethyst%20necklace%20with%20graduated%20beads%20and%20silver%20clasp&image_size=square',
       rating: 4.6,
       sales: 423,
-      tag: '特价'
+      tag: '特价',
+      discount: '15%'
+    },
+    {
+      id: 5,
+      name: '白玉平安扣',
+      price: 1200,
+      originalPrice: 1400,
+      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20jade%20safety%20buckle%20pendant%20with%20traditional%20design&image_size=square',
+      rating: 4.8,
+      sales: 789,
+      tag: '热销',
+      discount: '14%'
+    },
+    {
+      id: 6,
+      name: '碧玉手串',
+      price: 980,
+      originalPrice: 1200,
+      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20jade%20beaded%20bracelet%20with%20uniform%20color&image_size=square',
+      rating: 4.5,
+      sales: 567,
+      tag: '精品',
+      discount: '18%'
+    },
+    {
+      id: 7,
+      name: '黄龙玉摆件',
+      price: 3200,
+      originalPrice: 3800,
+      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=yellow%20dragon%20jade%20ornament%20with%20carved%20dragon%20design&image_size=square',
+      rating: 4.9,
+      sales: 234,
+      tag: '收藏',
+      discount: '16%'
+    },
+    {
+      id: 8,
+      name: '粉晶耳环',
+      price: 450,
+      originalPrice: 550,
+      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=pink%20crystal%20earrings%20with%20silver%20hooks&image_size=square',
+      rating: 4.4,
+      sales: 345,
+      tag: '新品',
+      discount: '18%'
     }
   ];
+
+  // 快速添加到购物车
+  const handleQuickAddToCart = (product: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1
+    });
+  };
+
+  // 切换收藏状态
+  const handleToggleFavorite = (product: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image
+      });
+    }
+  };
 
   // 品牌优势数据
   const advantages = [
@@ -162,21 +249,22 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 商品分类区域 */}
-      <section className="py-16 bg-white">
+      {/* 快速导航区域 */}
+      <section className="py-8 bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">商品分类</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              精选四大类玉石珍品，每一类都承载着深厚的文化底蕴和独特的美学价值
-            </p>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">商品分类</h2>
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-500">快速筛选</span>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {categories.map((category) => (
               <Link
                 key={category.id}
                 to={category.link}
-                className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                className="group bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 overflow-hidden"
               >
                 <div className="aspect-square overflow-hidden">
                   <img
@@ -185,11 +273,12 @@ const Home: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-                <div className="p-6 text-center">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <div className="p-4 text-center">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
                     {category.name}
                   </h3>
-                  <p className="text-gray-600 text-sm">{category.description}</p>
+                  <p className="text-gray-600 text-xs mb-1">{category.description}</p>
+                  <p className="text-blue-600 text-xs font-medium">{category.count}</p>
                 </div>
               </Link>
             ))}
@@ -197,28 +286,50 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 热销商品区域 */}
-      <section className="py-16 bg-gray-50">
+      {/* 热销商品区域 - 更密集的布局 */}
+      <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-12">
+          <div className="flex justify-between items-center mb-8">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">热销商品</h2>
-              <p className="text-gray-600">精选热销商品，品质保证，值得信赖</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">热销商品</h2>
+              <p className="text-gray-600 text-sm">精选热销商品，品质保证，值得信赖</p>
             </div>
-            <Link
-              to="/products"
-              className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
-            >
-              查看更多
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Link>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
+                >
+                  <Grid className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+              <Link
+                to="/products"
+                className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm"
+              >
+                查看更多
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          {/* 商品网格 - 更密集的布局 */}
+          <div className={`grid gap-4 ${
+            viewMode === 'grid' 
+              ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6' 
+              : 'grid-cols-1 md:grid-cols-2'
+          }`}>
             {hotProducts.map((product) => (
               <Link
                 key={product.id}
                 to={`/product/${product.id}`}
-                className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100"
               >
                 <div className="relative aspect-square overflow-hidden">
                   <img
@@ -226,27 +337,65 @@ const Home: React.FC = () => {
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute top-3 left-3">
+                  
+                  {/* 商品标签 */}
+                  <div className="absolute top-2 left-2 flex flex-col space-y-1">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       product.tag === '热销' ? 'bg-red-100 text-red-600' :
                       product.tag === '精品' ? 'bg-blue-100 text-blue-600' :
                       product.tag === '新品' ? 'bg-green-100 text-green-600' :
+                      product.tag === '收藏' ? 'bg-purple-100 text-purple-600' :
                       'bg-orange-100 text-orange-600'
                     }`}>
                       {product.tag}
                     </span>
+                    {product.discount && (
+                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                        -{product.discount}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 悬浮操作按钮 */}
+                  <div className="absolute top-2 right-2 flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => handleToggleFavorite(product, e)}
+                      className={`p-2 rounded-full shadow-md transition-colors ${
+                        isFavorite(product.id) 
+                          ? 'bg-red-500 text-white' 
+                          : 'bg-white text-gray-600 hover:text-red-500'
+                      }`}
+                    >
+                      <Heart className="h-4 w-4" />
+                    </button>
+                    <button className="p-2 bg-white text-gray-600 hover:text-blue-600 rounded-full shadow-md transition-colors">
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* 快速购买按钮 */}
+                  <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => handleQuickAddToCart(product, e)}
+                      className="p-2 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                
+                <div className="p-3">
+                  <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-blue-600 transition-colors line-clamp-2">
                     {product.name}
                   </h3>
+                  
+                  {/* 评分 */}
                   <div className="flex items-center mb-2">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-4 w-4 ${
+                          className={`h-3 w-3 ${
                             i < Math.floor(product.rating)
                               ? 'text-yellow-400 fill-current'
                               : 'text-gray-300'
@@ -254,19 +403,27 @@ const Home: React.FC = () => {
                         />
                       ))}
                     </div>
-                    <span className="text-sm text-gray-600 ml-2">
-                      {product.rating} ({product.sales}+)
+                    <span className="text-xs text-gray-500 ml-1">
+                      ({product.sales}+)
                     </span>
                   </div>
+                  
+                  {/* 价格 */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl font-bold text-red-600">
+                    <div className="flex flex-col">
+                      <span className="text-lg font-bold text-red-600">
                         ¥{product.price.toLocaleString()}
                       </span>
-                      <span className="text-sm text-gray-500 line-through">
+                      <span className="text-xs text-gray-500 line-through">
                         ¥{product.originalPrice.toLocaleString()}
                       </span>
                     </div>
+                    <button
+                      onClick={(e) => handleQuickAddToCart(product, e)}
+                      className="md:hidden p-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                      <ShoppingCart className="h-3 w-3" />
+                    </button>
                   </div>
                 </div>
               </Link>

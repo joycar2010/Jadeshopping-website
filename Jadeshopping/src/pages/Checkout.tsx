@@ -13,11 +13,7 @@ interface ShippingForm {
   zipCode: string;
 }
 
-interface PaymentMethod {
-  id: string;
-  name: string;
-  icon: string;
-}
+
 
 const Checkout: React.FC = () => {
   const { items, getTotalItems, getTotalPrice, clearCart } = useCartStore();
@@ -32,14 +28,7 @@ const Checkout: React.FC = () => {
     zipCode: ''
   });
 
-  const [selectedPayment, setSelectedPayment] = useState('alipay');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const paymentMethods: PaymentMethod[] = [
-    { id: 'alipay', name: '支付宝', icon: '💰' },
-    { id: 'wechat', name: '微信支付', icon: '💚' },
-    { id: 'unionpay', name: '银联支付', icon: '💳' },
-  ];
 
   const formatPrice = (price: number) => {
     return `¥${price.toLocaleString()}`;
@@ -231,37 +220,7 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
 
-              {/* 支付方式 */}
-              <div className="card p-6">
-                <div className="flex items-center mb-4">
-                  <CreditCard className="h-6 w-6 text-primary-500 mr-2" />
-                  <h2 className="text-xl font-semibold text-gray-900">支付方式</h2>
-                </div>
-                
-                <div className="space-y-3">
-                  {paymentMethods.map((method) => (
-                    <label
-                      key={method.id}
-                      className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
-                        selectedPayment === method.id
-                          ? 'border-primary-500 bg-primary-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="payment"
-                        value={method.id}
-                        checked={selectedPayment === method.id}
-                        onChange={(e) => setSelectedPayment(e.target.value)}
-                        className="sr-only"
-                      />
-                      <span className="text-2xl mr-3">{method.icon}</span>
-                      <span className="font-medium">{method.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
+
 
               {/* 安全保障 */}
               <div className="card p-6">
