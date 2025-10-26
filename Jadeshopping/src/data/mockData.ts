@@ -1,30 +1,66 @@
 import { Product, Category, Order, OrderStatus, ProductQueryParams, ApiResponse, Review, UserSettings } from '../types';
 
+// 产品名称关键词到图片映射（本地SVG占位，避免外链被拦截）
+const productKeywordImageMap: Record<string, string> = {
+  '和田玉': '/images/hetian.svg',
+  '观音': '/images/hetian.svg',
+  '翡翠': '/images/jadeite.svg',
+  '手镯': '/images/jadeite.svg',
+  '玛瑙': '/images/agate.svg',
+  '南红': '/images/agate.svg',
+  '水晶': '/images/crystal.svg',
+  '项链': '/images/crystal.svg'
+};
+
+const categoryDefaultImageMap: Record<string, string> = {
+  hetian: '/images/hetian.svg',
+  jadeite: '/images/jadeite.svg',
+  agate: '/images/agate.svg',
+  crystal: '/images/crystal.svg'
+};
+
+function resolveProductImage(name: string, category?: string): string {
+  const text = name || '';
+  for (const key of Object.keys(productKeywordImageMap)) {
+    if (text.includes(key)) return productKeywordImageMap[key];
+  }
+  if (category && categoryDefaultImageMap[category]) {
+    return categoryDefaultImageMap[category];
+  }
+  return '/guaranteed-antiques-logo.png';
+}
+
+function resolveProductImages(name: string, category?: string): string[] {
+  const img = resolveProductImage(name, category);
+  // 返回两张图以兼容画廊视图；若需要更多可扩展
+  return [img, img];
+}
+
 // 商品分类数据
 export const getCategoriesData = (): Category[] => [
   {
     id: 'hetian',
     name: '和田玉',
     description: '温润如脂，君子之石',
-    image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20hetian%20jade%20carved%20pendant%20with%20traditional%20Chinese%20design&image_size=square'
+    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp'
   },
   {
     id: 'jadeite',
     name: '翡翠',
     description: '翠绿欲滴，富贵吉祥',
-    image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20jadeite%20bracelet%20with%20natural%20patterns%20and%20high%20transparency&image_size=square'
+    image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp'
   },
   {
     id: 'agate',
     name: '玛瑙',
     description: '色彩斑斓，护身辟邪',
-    image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=colorful%20agate%20beads%20necklace%20with%20natural%20banding%20patterns&image_size=square'
+    image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp'
   },
   {
     id: 'crystal',
     name: '水晶',
     description: '晶莹剔透，净化心灵',
-    image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=clear%20crystal%20sphere%20with%20rainbow%20reflections%20on%20elegant%20stand&image_size=square'
+    image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp'
   }
 ];
 
@@ -38,8 +74,8 @@ export const getProductsData = (params?: ProductQueryParams): ApiResponse<Produc
       price: 2880,
       originalPrice: 3200,
       images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20hetian%20jade%20guanyin%20pendant%20with%20detailed%20carving%20and%20gold%20chain&image_size=square',
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=close%20up%20view%20of%20jade%20guanyin%20carving%20details&image_size=square'
+        '/images/hetian.svg',
+        '/images/hetian.svg'
       ],
       category: 'hetian',
       rating: 4.9,
@@ -48,24 +84,24 @@ export const getProductsData = (params?: ProductQueryParams): ApiResponse<Produc
       stock: 8,
       specifications: {
         '材质': '新疆和田玉籽料',
-        '尺寸': '45mm × 28mm × 8mm',
-        '重量': '约15g',
         '工艺': '手工雕刻',
-        '配链': '18K金项链'
+        '尺寸': '长3.2cm × 宽2.1cm × 厚0.8cm',
+        '重量': '约15g',
+        '证书': '国家珠宝玉石质量监督检验中心'
       },
-      tags: ['热销', '精品', '手工雕刻'],
-      createdAt: '2024-01-15T08:00:00Z',
-      updatedAt: '2024-01-15T08:00:00Z'
+      tags: ['热销', '精品', '收藏'],
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-15T10:30:00Z'
     },
     {
       id: '2',
       name: '缅甸翡翠手镯',
-      description: '缅甸A货翡翠手镯，天然绿色，水头足，种质细腻。经过专业鉴定，品质保证，是女性朋友的最爱。',
+      description: '天然缅甸翡翠A货手镯，种水俱佳，颜色均匀均匀。内径适中，佩戴舒适，是女性优雅气质的完美体现。',
       price: 8800,
       originalPrice: 9600,
       images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20myanmar%20jadeite%20bangle%20with%20natural%20color%20variations&image_size=square',
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jadeite%20bangle%20transparency%20and%20texture%20close%20up&image_size=square'
+        '/images/jadeite.svg',
+        '/images/jadeite.svg'
       ],
       category: 'jadeite',
       rating: 4.8,
@@ -73,25 +109,26 @@ export const getProductsData = (params?: ProductQueryParams): ApiResponse<Produc
       sales: 892,
       stock: 3,
       specifications: {
-        '材质': '缅甸A货翡翠',
-        '内径': '56-58mm可选',
-        '厚度': '12mm',
-        '重量': '约45g',
-        '证书': '国检证书'
+        '材质': '缅甸翡翠A货',
+        '种水': '糯冰种',
+        '颜色': '阳绿',
+        '内径': '56-58mm',
+        '宽度': '12-15mm',
+        '证书': 'GIC珠宝检测中心'
       },
-      tags: ['精品', 'A货', '国检证书'],
-      createdAt: '2024-01-14T08:00:00Z',
-      updatedAt: '2024-01-14T08:00:00Z'
+      tags: ['A货', '糯冰种', '阳绿'],
+      createdAt: '2024-01-02T00:00:00Z',
+      updatedAt: '2024-01-14T15:20:00Z'
     },
     {
       id: '3',
       name: '南红玛瑙戒指',
-      description: '四川凉山南红玛瑙，颜色鲜艳，质地细腻。925银镶嵌，工艺精美，适合日常佩戴。',
+      description: '精选四川凉山南红玛瑙，色泽红润如血，质地细腻温润。925银镶嵌工艺，设计简约大方，适合日常佩戴。',
       price: 1580,
       originalPrice: 1800,
       images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=red%20agate%20ring%20with%20silver%20setting%20and%20elegant%20design&image_size=square',
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=south%20red%20agate%20stone%20detail%20with%20natural%20patterns&image_size=square'
+        '/images/agate.svg',
+        '/images/agate.svg'
       ],
       category: 'agate',
       rating: 4.7,
@@ -100,24 +137,24 @@ export const getProductsData = (params?: ProductQueryParams): ApiResponse<Produc
       stock: 12,
       specifications: {
         '材质': '四川凉山南红玛瑙',
-        '戒托': '925银',
+        '镶嵌': '925银',
         '戒面尺寸': '12mm × 10mm',
         '戒圈': '可调节',
         '重量': '约8g'
       },
-      tags: ['新品', '925银', '可调节'],
-      createdAt: '2024-01-13T08:00:00Z',
-      updatedAt: '2024-01-13T08:00:00Z'
+      tags: ['南红', '925银', '可调节'],
+      createdAt: '2024-01-03T00:00:00Z',
+      updatedAt: '2024-01-13T09:45:00Z'
     },
     {
       id: '4',
       name: '紫水晶项链',
-      description: '巴西紫水晶，颜色纯正，透明度高。采用渐变设计，从小到大排列，佩戴效果优雅大方。',
+      description: '巴西天然紫水晶项链，颜色深邃迷人，晶体通透。渐变式设计，层次丰富，佩戴优雅，有助于提升个人魅力。',
       price: 680,
       originalPrice: 800,
       images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=purple%20amethyst%20necklace%20with%20graduated%20beads%20and%20silver%20clasp&image_size=square',
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=amethyst%20crystal%20beads%20close%20up%20showing%20clarity&image_size=square'
+        '/images/crystal.svg',
+        '/images/crystal.svg'
       ],
       category: 'crystal',
       rating: 4.6,
@@ -125,93 +162,49 @@ export const getProductsData = (params?: ProductQueryParams): ApiResponse<Produc
       sales: 423,
       stock: 15,
       specifications: {
-        '材质': '巴西紫水晶',
+        '材质': '巴西天然紫水晶',
         '长度': '45cm',
-        '珠子尺寸': '6-12mm渐变',
-        '扣头': '925银',
+        '珠子大小': '6-12mm渐变',
+        '扣子': '925银龙虾扣',
         '重量': '约25g'
       },
-      tags: ['特价', '渐变设计', '巴西产'],
-      createdAt: '2024-01-12T08:00:00Z',
-      updatedAt: '2024-01-12T08:00:00Z'
-    },
-    {
-      id: '5',
-      name: '和田玉平安扣',
-      description: '传统平安扣造型，寓意平安如意。选用优质和田玉制作，质地温润，是送礼佳品。',
-      price: 1200,
-      originalPrice: 1400,
-      images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20hetian%20jade%20safety%20buckle%20pendant%20with%20traditional%20design&image_size=square'
-      ],
-      category: 'hetian',
-      rating: 4.5,
-      reviewCount: 78,
-      sales: 567,
-      stock: 6,
-      specifications: {
-        '材质': '和田玉',
-        '直径': '30mm',
-        '厚度': '6mm',
-        '重量': '约12g',
-        '寓意': '平安如意'
-      },
-      tags: ['传统', '平安扣', '送礼'],
-      createdAt: '2024-01-11T08:00:00Z',
-      updatedAt: '2024-01-11T08:00:00Z'
-    },
-    {
-      id: '6',
-      name: '翡翠如意吊坠',
-      description: '缅甸翡翠雕刻如意造型，工艺精湛，寓意心想事成。配有国检证书，品质保证。',
-      price: 3600,
-      originalPrice: 4000,
-      images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20jadeite%20ruyi%20pendant%20with%20intricate%20carving&image_size=square'
-      ],
-      category: 'jadeite',
-      rating: 4.7,
-      reviewCount: 34,
-      sales: 234,
-      stock: 4,
-      specifications: {
-        '材质': '缅甸A货翡翠',
-        '尺寸': '40mm × 25mm',
-        '重量': '约18g',
-        '证书': '国检证书',
-        '寓意': '心想事成'
-      },
-      tags: ['如意', 'A货', '国检'],
-      createdAt: '2024-01-10T08:00:00Z',
-      updatedAt: '2024-01-10T08:00:00Z'
+      tags: ['天然', '渐变', '巴西'],
+      createdAt: '2024-01-04T00:00:00Z',
+      updatedAt: '2024-01-12T16:30:00Z'
     }
   ];
 
-  let filteredProducts = [...allProducts];
+  // 基于产品名称与分类统一解析图片，避免名称与图片不一致
+  const normalizedProducts: Product[] = allProducts.map(p => ({
+    ...p,
+    images: resolveProductImages(p.name, p.category)
+  }));
 
-  // 分类筛选
+  // 应用筛选逻辑
+  let filteredProducts = normalizedProducts;
+
   if (params?.category) {
     filteredProducts = filteredProducts.filter(product => product.category === params.category);
   }
 
-  // 搜索筛选
-  if (params?.search) {
-    const searchTerm = params.search.toLowerCase();
-    filteredProducts = filteredProducts.filter(product =>
-      product.name.toLowerCase().includes(searchTerm) ||
-      product.description.toLowerCase().includes(searchTerm)
-    );
-  }
-
-  // 价格筛选
-  if (params?.minPrice) {
+  if (params?.minPrice !== undefined) {
     filteredProducts = filteredProducts.filter(product => product.price >= params.minPrice!);
   }
-  if (params?.maxPrice) {
+
+  if (params?.maxPrice !== undefined) {
     filteredProducts = filteredProducts.filter(product => product.price <= params.maxPrice!);
   }
 
-  // 排序
+  if (params?.search) {
+    const searchTerm = params.search.toLowerCase();
+    filteredProducts = filteredProducts.filter(product => 
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.description.toLowerCase().includes(searchTerm) ||
+      product.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+    );
+  }
+
+  // 应用排序
   if (params?.sort) {
     switch (params.sort) {
       case 'price_asc':
@@ -220,100 +213,67 @@ export const getProductsData = (params?: ProductQueryParams): ApiResponse<Produc
       case 'price_desc':
         filteredProducts.sort((a, b) => b.price - a.price);
         break;
-      case 'sales':
-        filteredProducts.sort((a, b) => b.sales - a.sales);
-        break;
       case 'rating':
         filteredProducts.sort((a, b) => b.rating - a.rating);
         break;
-      case 'created_at':
-      default:
+      case 'sales':
+        filteredProducts.sort((a, b) => b.sales - a.sales);
+        break;
+      case 'newest':
         filteredProducts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
+      default:
+        // 默认按销量排序
+        filteredProducts.sort((a, b) => b.sales - a.sales);
     }
   }
 
-  // 分页
-  const offset = params?.offset || 0;
+  // 应用分页
+  const page = params?.page || 1;
   const limit = params?.limit || 20;
-  const paginatedProducts = filteredProducts.slice(offset, offset + limit);
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
   return {
     success: true,
     data: paginatedProducts,
-    total: filteredProducts.length
+    total: filteredProducts.length,
+    page,
+    limit,
+    totalPages: Math.ceil(filteredProducts.length / limit)
   };
 };
 
-// 获取单个商品详情
 export const getProductById = (id: string): Product | null => {
-  const { data } = getProductsData();
-  return data.find(product => product.id === id) || null;
+  const { data: products } = getProductsData();
+  return products.find(product => product.id === id) || null;
 };
 
-// 获取相关商品推荐
 export const getRelatedProducts = (category: string, excludeId: string): Product[] => {
-  const { data } = getProductsData({ category });
-  return data.filter(product => product.id !== excludeId).slice(0, 4);
+  const { data: products } = getProductsData({ category });
+  return products.filter(product => product.id !== excludeId).slice(0, 4);
 };
 
-// 获取商品评价
 export const getProductReviews = (productId: string): Review[] => {
-  const reviews: Review[] = [
+  // 模拟评论数据
+  return [
     {
       id: '1',
-      product_id: '1',
-      user_name: '玉石爱好者',
+      product_id: productId,
+      user_name: '张**',
+      userId: 'user1',
+      userName: '张**',
+      userAvatar: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80',
       rating: 5,
-      comment: '非常满意！玉质温润，雕工精美，佩戴效果很好。包装也很精美，是正品。',
+      comment: '非常满意的一次购买！玉质温润，雕工精细，包装也很用心。客服态度很好，物流也很快。',
+      content: '非常满意的一次购买！玉质温润，雕工精细，包装也很用心。客服态度很好，物流也很快。',
       images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jade%20pendant%20worn%20on%20neck%20showing%20beautiful%20carving&image_size=square'
+        'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80'
       ],
-      created_at: '2024-01-08T14:30:00Z'
-    },
-    {
-      id: '2',
-      product_id: '1',
-      user_name: '收藏家',
-      rating: 4,
-      comment: '质量不错，就是价格有点贵。但是确实是好东西，值得收藏。',
-      images: [],
-      created_at: '2024-01-05T10:15:00Z'
-    },
-    {
-      id: '3',
-      product_id: '2',
-      user_name: '翡翠迷',
-      rating: 5,
-      comment: '手镯很漂亮，颜色正，水头足。戴上很显气质，朋友们都说好看。',
-      images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=woman%20wearing%20green%20jadeite%20bangle%20on%20wrist&image_size=square'
-      ],
-      created_at: '2024-01-03T16:45:00Z'
-    },
-    {
-      id: '4',
-      product_id: '3',
-      user_name: '时尚达人',
-      rating: 4,
-      comment: '戒指很精致，南红的颜色很正。银托做工也不错，日常佩戴很合适。',
-      images: [],
-      created_at: '2024-01-02T11:20:00Z'
-    },
-    {
-      id: '5',
-      product_id: '4',
-      user_name: '水晶控',
-      rating: 5,
-      comment: '紫水晶很纯净，渐变效果很美。项链长度刚好，质量超出预期。',
-      images: [
-        'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=purple%20amethyst%20necklace%20displayed%20on%20jewelry%20stand&image_size=square'
-      ],
-      created_at: '2023-12-30T09:10:00Z'
+      created_at: '2024-01-05T16:45:00Z'
     }
   ];
-
-  return reviews.filter(review => review.product_id === productId);
 };
 
 // 订单数据
@@ -327,7 +287,7 @@ const mockOrders: Order[] = [
         productId: '1',
         name: '和田玉观音吊坠',
         price: 2880,
-        image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20hetian%20jade%20guanyin%20pendant%20with%20detailed%20carving%20and%20gold%20chain&image_size=square',
+        image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
         quantity: 1
       }
     ],
@@ -356,7 +316,7 @@ const mockOrders: Order[] = [
         productId: '2',
         name: '缅甸翡翠手镯',
         price: 8800,
-        image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20myanmar%20jadeite%20bangle%20with%20natural%20color%20variations&image_size=square',
+        image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
         quantity: 1
       }
     ],
@@ -385,7 +345,7 @@ const mockOrders: Order[] = [
         productId: '3',
         name: '南红玛瑙戒指',
         price: 1580,
-        image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=red%20agate%20ring%20with%20silver%20setting%20and%20elegant%20design&image_size=square',
+        image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
         quantity: 1
       },
       {
@@ -393,7 +353,7 @@ const mockOrders: Order[] = [
         productId: '4',
         name: '紫水晶项链',
         price: 680,
-        image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=purple%20amethyst%20necklace%20with%20graduated%20beads%20and%20silver%20clasp&image_size=square',
+        image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
         quantity: 1
       }
     ],
@@ -415,33 +375,45 @@ const mockOrders: Order[] = [
   }
 ];
 
-// 获取订单数据
+// 获取用户订单（统一修正订单项图片为当前产品图）
 export const getOrdersData = (userId: string): Order[] => {
-  return mockOrders.filter(order => order.userId === userId);
+  const orders = mockOrders.filter(order => order.userId === userId);
+  return orders.map(order => ({
+    ...order,
+    items: order.items.map(item => {
+      const product = getProductById(item.productId);
+      const image = product?.images?.[0] || resolveProductImage(item.name);
+      return { ...item, image };
+    })
+  }));
 };
 
-// 获取用户设置数据
+// 用户设置数据
 export const getUserSettings = (): UserSettings => {
   return {
     notifications: {
+      email: true,
+      sms: false,
+      push: true,
       orderUpdates: true,
       promotions: false,
-      newsletter: false
+      newsletter: true
     },
     privacy: {
-      showProfile: false,
-      showPurchaseHistory: false
+      profileVisible: true,
+      showProfile: true,
+      showPurchaseHistory: false,
+      allowRecommendations: true
     },
-    security: {
-      twoFactorAuth: false,
-      loginNotifications: true
+    preferences: {
+      language: 'zh-CN',
+      currency: 'CNY',
+      theme: 'light'
     }
   };
 };
 
-// 更新用户设置
 export const updateUserSettings = (settings: Partial<UserSettings>): boolean => {
   // 模拟更新用户设置
-  console.log('Updating user settings:', settings);
   return true;
 };

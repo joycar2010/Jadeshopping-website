@@ -212,7 +212,15 @@ const Follow: React.FC = () => {
                         </div>
                         <div className="grid grid-cols-3 gap-2 p-4">
                           {recommendedProducts.slice(0, 3).map((p) => (
-                            <img key={`${store.name}-${p.id}`} src={p.images[0]} alt={p.name} className="w-full h-20 object-cover rounded" />
+                            <img 
+                              key={`${store.name}-${p.id}`} 
+                              src={p.images[0]} 
+                              alt={p.name} 
+                              className="w-full h-20 object-cover rounded"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80&fm=webp';
+                              }}
+                            />
                           ))}
                         </div>
                       </div>
@@ -264,7 +272,14 @@ const Follow: React.FC = () => {
                       <div className="grid grid-cols-3 gap-2 p-4">
                         {recommendedProducts.slice(idx, idx + 3).map((p) => (
                           <div key={`${store.name}-${p.id}`} className="relative">
-                            <img src={p.images[0]} alt={p.name} className="w-full h-24 object-cover rounded" />
+                            <img 
+                              src={p.images[0]} 
+                              alt={p.name} 
+                              className="w-full h-24 object-cover rounded"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center';
+                              }}
+                            />
                             {p.originalPrice && p.originalPrice > p.price && (
                               <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1 py-[2px] rounded">
                                 -{Math.round((1 - p.price / p.originalPrice) * 100)}%

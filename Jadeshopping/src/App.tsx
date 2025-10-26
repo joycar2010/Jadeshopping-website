@@ -5,10 +5,10 @@ import ProductList from "@/pages/ProductList";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import Login from "@/pages/Login";
-import Points from "/src/pages/Points";
-import Wallet from "/src/pages/Wallet";
-import GiftCard from "/src/pages/GiftCard";
-import RequireAuth from "/src/components/RequireAuth";
+import Points from "@/pages/Points";
+import Wallet from "@/pages/Wallet";
+import GiftCard from "@/pages/GiftCard";
+import RequireAuth from "@/components/RequireAuth";
 import VIP from './pages/VIP';
 import Buyback from "@/pages/Buyback";
 
@@ -34,14 +34,14 @@ import Join from "@/pages/Join";
 import Supplier from "@/pages/Supplier";
 import Wholesale from "@/pages/Wholesale";
 import Media from "@/pages/Media";
-import Follow from "/src/pages/Follow";
-import Coupons from "/src/pages/Coupons";
-import MemberClub from "/src/pages/MemberClub";
+import Follow from "@/pages/Follow";
+import Coupons from "@/pages/Coupons";
+import MemberClub from "@/pages/MemberClub";
 // 新增政策页面组件导入
-import PolicyCoupons from "/src/pages/PolicyCoupons";
-import PolicyPoints from "/src/pages/PolicyPoints";
-import PolicyWallet from "/src/pages/PolicyWallet";
-import PolicyPayments from "/src/pages/PolicyPayments";
+import PolicyCoupons from "@/pages/PolicyCoupons";
+import PolicyPoints from "@/pages/PolicyPoints";
+import PolicyWallet from "@/pages/PolicyWallet";
+import PolicyPayments from "@/pages/PolicyPayments";
 // 组件
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";

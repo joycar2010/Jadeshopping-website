@@ -100,11 +100,11 @@ const Buyback: React.FC = () => {
 
   const advanceStep = () => {
     setStep((s) => {
-      const next = Math.min(4, (s + 1) as any);
+      const next = Math.min(4, s + 1);
       if (next === 2) toast.message('实物核验中：邮寄或到店交付');
       if (next === 3) toast.message('报价确认：请在3个工作日内确认');
       if (next === 4) toast.success('交易完成：24小时内付款，或免费原路寄回');
-      return next;
+      return next as 0 | 1 | 2 | 3 | 4;
     });
   };
 

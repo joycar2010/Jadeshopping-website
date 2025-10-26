@@ -63,6 +63,9 @@ const ProductDetail: React.FC = () => {
             alt={product.name}
             className="max-w-full max-h-full object-contain"
             onClick={(e) => e.stopPropagation()}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80&fm=webp';
+            }}
           />
         </div>
       </div>
@@ -156,6 +159,9 @@ const ProductDetail: React.FC = () => {
                 alt={product.name}
                 className="w-full h-full object-cover cursor-zoom-in"
                 onClick={() => setShowImageModal(true)}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80&fm=webp';
+                }}
               />
               <button
                 onClick={() => setShowImageModal(true)}
@@ -386,7 +392,7 @@ const ProductDetail: React.FC = () => {
                                 <img
                                   key={index}
                                   src={image}
-                                  alt={`评价图片 ${index + 1}`}
+                                  alt={`${review.user_name}的评价图片 ${index + 1}`}
                                   className="w-20 h-20 object-cover rounded-lg"
                                 />
                               ))}
@@ -436,6 +442,9 @@ const ProductDetail: React.FC = () => {
                       src={relatedProduct.images[0]}
                       alt={relatedProduct.name}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center';
+                      }}
                     />
                   </div>
                   <div className="p-4">

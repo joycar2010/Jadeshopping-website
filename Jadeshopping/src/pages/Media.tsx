@@ -177,7 +177,7 @@ const Media: React.FC = () => {
         '年轻用户占比70%',
         '品牌年轻化成功'
       ],
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=social%20media%20content%20creation%20jade%20jewelry%20modern%20lifestyle&image_size=landscape_4_3'
+      image: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600&q=80&fm=webp'
     }
   ];
 

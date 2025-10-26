@@ -109,6 +109,9 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
   total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
 }
 
 // 分页参数类型
@@ -122,7 +125,7 @@ export interface PaginationParams {
 export interface ProductQueryParams extends PaginationParams {
   category?: string;
   search?: string;
-  sort?: 'created_at' | 'price_asc' | 'price_desc' | 'sales' | 'rating';
+  sort?: 'created_at' | 'price_asc' | 'price_desc' | 'sales' | 'rating' | 'newest';
   minPrice?: number;
   maxPrice?: number;
 }
@@ -154,8 +157,12 @@ export interface Review {
   id: string;
   product_id: string;
   user_name: string;
+  userId?: string;
+  userName?: string;
+  userAvatar?: string;
   rating: number;
   comment: string;
+  content?: string;
   images?: string[];
   created_at: string;
 }
@@ -195,16 +202,26 @@ export interface AddressState {
 // 用户设置类型
 export interface UserSettings {
   notifications: {
+    email?: boolean;
+    sms?: boolean;
+    push?: boolean;
     orderUpdates: boolean;
     promotions: boolean;
     newsletter: boolean;
   };
   privacy: {
+    profileVisible?: boolean;
     showProfile: boolean;
     showPurchaseHistory: boolean;
+    allowRecommendations?: boolean;
   };
-  security: {
+  security?: {
     twoFactorAuth: boolean;
     loginNotifications: boolean;
+  };
+  preferences?: {
+    language: string;
+    currency: string;
+    theme: string;
   };
 }

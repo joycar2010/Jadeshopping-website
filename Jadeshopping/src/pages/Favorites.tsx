@@ -219,6 +219,9 @@ const Favorites: React.FC = () => {
                               src={favorite.images[0]}
                               alt={favorite.name}
                               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center';
+                              }}
                             />
                           </Link>
                           <button
@@ -315,6 +318,9 @@ const Favorites: React.FC = () => {
                             src={product.images[0]}
                             alt={product.name}
                             className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center';
+                            }}
                           />
                         </Link>
                         {product.originalPrice && product.originalPrice > product.price && (

@@ -1,19 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Star, Shield, Truck, Award, Heart, ShoppingCart, Plus, Eye, Filter, Grid, List } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Star, Shield, Truck, Award, Heart, ShoppingCart, Plus, Eye, Filter, Grid, List } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { useFavoritesStore } from '../store/useFavoritesStore';
 
 const Home: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const { addItem } = useCartStore();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [imageLoadStates, setImageLoadStates] = useState<{ [key: number]: boolean }>({});
+  const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+  
+  const { addToCart } = useCartStore();
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
 
   // 轮播图数据
   const bannerSlides = [
     {
       id: 1,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=elegant%20jade%20jewelry%20display%20with%20soft%20lighting%20and%20traditional%20Chinese%20elements&image_size=landscape_16_9',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80&fm=webp',
       title: '传承千年玉石文化',
       subtitle: '精选优质和田玉，传统工艺与现代设计完美融合',
       buttonText: '立即选购',
@@ -21,7 +29,7 @@ const Home: React.FC = () => {
     },
     {
       id: 2,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20jadeite%20bracelet%20collection%20on%20silk%20fabric%20with%20elegant%20presentation&image_size=landscape_16_9',
+      image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80&fm=webp',
       title: '翡翠臻品荟萃',
       subtitle: '缅甸A货翡翠，每一件都是大自然的馈赠',
       buttonText: '查看详情',
@@ -29,7 +37,7 @@ const Home: React.FC = () => {
     },
     {
       id: 3,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=premium%20jade%20pendant%20with%20traditional%20Chinese%20carving%20in%20luxury%20gift%20box&image_size=landscape_16_9',
+      image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80&fm=webp',
       title: '匠心独运 臻品典藏',
       subtitle: '大师级雕刻工艺，每一件都是独一无二的艺术品',
       buttonText: '探索更多',
@@ -37,12 +45,34 @@ const Home: React.FC = () => {
     }
   ];
 
+  // 文案驱动图片解析（根据 h1/p 内容匹配图片）
+  const bannerImageMap: { [key: string]: string } = {
+    '和田玉': '/images/hetian.svg',
+    '翡翠': '/images/jadeite.svg',
+    '玛瑙': '/images/agate.svg',
+    '匠心': '/images/agate.svg',
+    '玉石': '/images/hetian.svg',
+  };
+
+  const resolveBannerImage = (title: string, subtitle: string, fallback?: string): string => {
+    const text = `${title} ${subtitle}`;
+    for (const key of Object.keys(bannerImageMap)) {
+      if (text.includes(key)) return bannerImageMap[key];
+    }
+    return fallback || bannerImageMap['玉石'];
+  };
+
+  const resolvedBannerImages = useMemo(
+    () => bannerSlides.map(s => resolveBannerImage(s.title, s.subtitle, s.image)),
+    [bannerSlides]
+  );
+
   // 商品分类数据
   const categories = [
     {
       id: 1,
       name: '和田玉',
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20hetian%20jade%20carved%20pendant%20with%20traditional%20Chinese%20design&image_size=square',
+      image: '/images/hetian.svg',
       description: '温润如脂，君子之石',
       link: '/products?category=hetian',
       count: '1200+ 商品'
@@ -50,7 +80,7 @@ const Home: React.FC = () => {
     {
       id: 2,
       name: '翡翠',
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20jadeite%20bracelet%20with%20natural%20patterns%20and%20high%20transparency&image_size=square',
+      image: '/images/jadeite.svg',
       description: '翠绿欲滴，富贵吉祥',
       link: '/products?category=jadeite',
       count: '800+ 商品'
@@ -58,7 +88,7 @@ const Home: React.FC = () => {
     {
       id: 3,
       name: '玛瑙',
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=colorful%20agate%20beads%20necklace%20with%20natural%20banding%20patterns&image_size=square',
+      image: '/images/agate.svg',
       description: '色彩斑斓，护身辟邪',
       link: '/products?category=agate',
       count: '600+ 商品'
@@ -66,7 +96,7 @@ const Home: React.FC = () => {
     {
       id: 4,
       name: '水晶',
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=clear%20crystal%20sphere%20with%20rainbow%20reflections%20on%20elegant%20stand&image_size=square',
+      image: '/images/crystal.svg',
       description: '晶莹剔透，净化心灵',
       link: '/products?category=crystal',
       count: '400+ 商品'
@@ -80,7 +110,7 @@ const Home: React.FC = () => {
       name: '和田玉观音吊坠',
       price: 2880,
       originalPrice: 3200,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20hetian%20jade%20guanyin%20pendant%20with%20detailed%20carving%20and%20gold%20chain&image_size=square',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
       rating: 4.9,
       sales: 1256,
       tag: '热销',
@@ -91,7 +121,7 @@ const Home: React.FC = () => {
       name: '缅甸翡翠手镯',
       price: 8800,
       originalPrice: 9600,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20myanmar%20jadeite%20bangle%20with%20natural%20color%20variations&image_size=square',
+      image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
       rating: 4.8,
       sales: 892,
       tag: '精品',
@@ -102,7 +132,7 @@ const Home: React.FC = () => {
       name: '南红玛瑙戒指',
       price: 1580,
       originalPrice: 1800,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=red%20agate%20ring%20with%20silver%20setting%20and%20elegant%20design&image_size=square',
+      image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
       rating: 4.7,
       sales: 654,
       tag: '新品',
@@ -113,7 +143,7 @@ const Home: React.FC = () => {
       name: '紫水晶项链',
       price: 680,
       originalPrice: 800,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=purple%20amethyst%20necklace%20with%20graduated%20beads%20and%20silver%20clasp&image_size=square',
+      image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
       rating: 4.6,
       sales: 423,
       tag: '特价',
@@ -124,7 +154,7 @@ const Home: React.FC = () => {
       name: '白玉平安扣',
       price: 1200,
       originalPrice: 1400,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20jade%20safety%20buckle%20pendant%20with%20traditional%20design&image_size=square',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
       rating: 4.8,
       sales: 789,
       tag: '热销',
@@ -135,7 +165,7 @@ const Home: React.FC = () => {
       name: '碧玉手串',
       price: 980,
       originalPrice: 1200,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20jade%20beaded%20bracelet%20with%20uniform%20color&image_size=square',
+      image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
       rating: 4.5,
       sales: 567,
       tag: '精品',
@@ -146,7 +176,7 @@ const Home: React.FC = () => {
       name: '黄龙玉摆件',
       price: 3200,
       originalPrice: 3800,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=yellow%20dragon%20jade%20ornament%20with%20carved%20dragon%20design&image_size=square',
+      image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
       rating: 4.9,
       sales: 234,
       tag: '收藏',
@@ -157,7 +187,7 @@ const Home: React.FC = () => {
       name: '粉晶耳环',
       price: 450,
       originalPrice: 550,
-      image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=pink%20crystal%20earrings%20with%20silver%20hooks&image_size=square',
+      image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp',
       rating: 4.4,
       sales: 345,
       tag: '新品',
@@ -169,16 +199,107 @@ const Home: React.FC = () => {
   const handleQuickAddToCart = (product: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({
+    addToCart({
       id: product.id,
       name: product.name,
+      description: product.description || '',
       price: product.price,
-      image: product.image,
-      quantity: 1
-    });
+      images: [product.image],
+      category: product.category || '',
+      rating: product.rating || 0,
+      reviewCount: product.reviewCount || 0,
+      sales: product.sales || 0,
+      stock: product.stock || 0,
+      specifications: {},
+      tags: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      originalPrice: product.originalPrice
+    }, 1);
   };
 
   // 切换收藏状态
+  // 轮播图功能函数
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+  }, [bannerSlides.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
+  }, [bannerSlides.length]);
+
+  const goToSlide = useCallback((index: number) => {
+    setCurrentSlide(index);
+  }, []);
+
+  // 自动播放功能
+  useEffect(() => {
+    if (isAutoPlaying) {
+      intervalRef.current = setInterval(nextSlide, 5000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isAutoPlaying, nextSlide]);
+
+  // 图片预加载（按文案解析后的图片）
+  useEffect(() => {
+    resolvedBannerImages.forEach((src, index) => {
+      const img = new Image();
+      img.onload = () => {
+        setImageLoadStates(prev => ({ ...prev, [index]: true }));
+      };
+      img.onerror = () => {
+        setImageErrors(prev => ({ ...prev, [index]: true }));
+      };
+      img.src = src;
+    });
+  }, [resolvedBannerImages]);
+
+  // 键盘导航
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        prevSlide();
+      } else if (e.key === 'ArrowRight') {
+        nextSlide();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [nextSlide, prevSlide]);
+
+  // 触摸事件处理
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
   const handleToggleFavorite = (product: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -221,32 +342,95 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 轮播图区域 */}
-      <section className="relative h-96 md:h-[500px] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-green-50">
-          <img
-            src={bannerSlides[0].image}
-            alt={bannerSlides[0].title}
-            className="w-full h-full object-cover opacity-80"
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-        </div>
-        <div className="relative z-10 h-full flex items-center justify-center text-center text-white">
-          <div className="max-w-4xl mx-auto px-4">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              {bannerSlides[0].title}
-            </h1>
-            <p className="text-lg md:text-xl mb-8 opacity-90">
-              {bannerSlides[0].subtitle}
-            </p>
-            <Link
-              to={bannerSlides[0].buttonLink}
-              className="inline-flex items-center px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+      <section 
+        className="relative h-96 md:h-[500px] overflow-hidden"
+        onMouseEnter={() => setIsAutoPlaying(false)}
+        onMouseLeave={() => setIsAutoPlaying(true)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* 轮播图片容器 */}
+        <div className="relative w-full h-full">
+          {bannerSlides.map((slide, index) => (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentSlide ? 'opacity-100' : 'opacity-0'
+              }`}
             >
-              {bannerSlides[0].buttonText}
-              <ChevronRight className="ml-2 h-5 w-5" />
-            </Link>
-          </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-green-50">
+                <img
+                  src={imageErrors[index] ? '/guaranteed-antiques-logo.png' : resolvedBannerImages[index]}
+                  alt={slide.title}
+                  className="w-full h-full object-cover opacity-80"
+                  onError={() => setImageErrors(prev => ({ ...prev, [index]: true }))}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+              </div>
+              
+              {/* 内容区域 */}
+              <div className="relative z-10 h-full flex items-center justify-center text-center text-white">
+                <div className="max-w-4xl mx-auto px-4">
+                  <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
+                    {slide.title}
+                  </h1>
+                  <p className="text-lg md:text-xl mb-8 opacity-90 animate-fade-in-delay">
+                    {slide.subtitle}
+                  </p>
+                  <Link
+                    to={slide.buttonLink}
+                    className="inline-flex items-center px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors animate-fade-in-delay-2"
+                  >
+                    {slide.buttonText}
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+
+        {/* 导航箭头 */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all duration-300 backdrop-blur-sm"
+          aria-label="上一张"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all duration-300 backdrop-blur-sm"
+          aria-label="下一张"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+
+        {/* 指示器 */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+          {bannerSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentSlide 
+                  ? 'bg-white scale-110' 
+                  : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+              }`}
+              aria-label={`跳转到第${index + 1}张`}
+            />
+          ))}
+        </div>
+
+        {/* 加载指示器 */}
+        {!imageLoadStates[currentSlide] && !imageErrors[currentSlide] && (
+          <div className="absolute inset-0 bg-gray-200 flex items-center justify-center z-10">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        )}
       </section>
 
       {/* 快速导航区域 */}
@@ -483,9 +667,12 @@ const Home: React.FC = () => {
             </div>
             <div className="relative">
               <img
-                src="https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20Chinese%20jade%20carving%20workshop%20with%20master%20craftsman%20working%20on%20jade%20sculpture&image_size=landscape_4_3"
+                src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
                 alt="玉石文化传承"
                 className="w-full h-auto rounded-xl shadow-lg"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/guaranteed-antiques-logo.png';
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
             </div>

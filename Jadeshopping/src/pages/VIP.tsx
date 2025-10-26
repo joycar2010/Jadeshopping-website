@@ -225,7 +225,14 @@ const VIP: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((p) => (
                   <div key={p.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                    <img src={p.images?.[0]} alt={p.name} className="w-full h-40 object-cover" />
+                    <img 
+                      src={p.images?.[0]} 
+                      alt={p.name} 
+                      className="w-full h-40 object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center';
+                      }}
+                    />
                     <div className="p-4">
                       <h4 className="font-medium text-gray-900 truncate">{p.name}</h4>
                       <p className="text-sm text-gray-600 line-clamp-2">{p.description}</p>

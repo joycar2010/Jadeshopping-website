@@ -213,7 +213,14 @@ const MemberClub: React.FC = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {products.map((p: any, i: number) => (
                   <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
-                    <img src={p.image} alt={p.name} className="w-full h-32 object-cover" />
+                    <img 
+                      src={p.image} 
+                      alt={p.name} 
+                      className="w-full h-32 object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center';
+                      }}
+                    />
                     <div className="p-3">
                       <div className="text-sm font-medium">{p.name}</div>
                       <div className="text-gray-600 text-xs">¥{p.price}</div>

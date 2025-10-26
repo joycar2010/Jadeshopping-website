@@ -4,7 +4,7 @@ import { ChevronRight, Crown } from 'lucide-react';
 import { useUserStore } from '../store/useUserStore';
 
 // 与 Wallet 页一致的默认头像占位
-const defaultAvatar = 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20elegant%20person&image_size=square';
+const defaultAvatar = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80&fm=webp';
 
 // 会员等级类型，保持与 Wallet 页一致
 type MembershipLevel = 'BASIC' | 'SILVER' | 'GOLD' | 'PLATINUM';

@@ -98,10 +98,10 @@ const Header: React.FC = () => {
       path: '/products?sort=newest',
       isNew: true,
       subcategories: [
-        { name: '和田玉新品', path: '/products?category=hetian&sort=newest', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20white%20jade%20pendant%20jewelry%20product%20photography&image_size=square', isNew: true },
-        { name: '翡翠新品', path: '/products?category=jadeite&sort=newest', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=emerald%20green%20jadeite%20bracelet%20luxury%20jewelry&image_size=square', isNew: true },
-        { name: '水晶新品', path: '/products?category=crystal&sort=newest', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=crystal%20gemstone%20sphere%20healing%20stones&image_size=square', isNew: true },
-        { name: '玛瑙新品', path: '/products?category=agate&sort=newest', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=colorful%20agate%20necklace%20natural%20stone%20jewelry&image_size=square', isNew: true }
+        { name: '和田玉新品', path: '/products?category=hetian&sort=newest', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp', isNew: true },
+        { name: '翡翠新品', path: '/products?category=jadeite&sort=newest', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp', isNew: true },
+        { name: '水晶新品', path: '/products?category=crystal&sort=newest', image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp', isNew: true },
+        { name: '玛瑙新品', path: '/products?category=agate&sort=newest', image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp', isNew: true }
       ]
     },
     {
@@ -109,10 +109,10 @@ const Header: React.FC = () => {
       name: '限时优惠',
       path: '/products?discount=true',
       subcategories: [
-        { name: '特价和田玉', path: '/products?category=hetian&discount=true', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=discounted%20white%20jade%20ring%20sale%20jewelry&image_size=square' },
-        { name: '特价翡翠', path: '/products?category=jadeite&discount=true', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20jadeite%20earrings%20sale%20discount&image_size=square' },
-        { name: '特价水晶', path: '/products?category=crystal&discount=true', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=amethyst%20crystal%20cluster%20sale%20price&image_size=square' },
-        { name: '特价玛瑙', path: '/products?category=agate&discount=true', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=red%20agate%20bracelet%20discount%20jewelry&image_size=square' }
+        { name: '特价和田玉', path: '/products?category=hetian&discount=true', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '特价翡翠', path: '/products?category=jadeite&discount=true', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '特价水晶', path: '/products?category=crystal&discount=true', image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '特价玛瑙', path: '/products?category=agate&discount=true', image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' }
       ]
     },
     {
@@ -120,11 +120,11 @@ const Header: React.FC = () => {
       name: '和田玉',
       path: '/products?category=hetian',
       subcategories: [
-        { name: '吊坠', path: '/products?category=hetian&type=pendant', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20jade%20pendant%20carved%20dragon%20traditional&image_size=square' },
-        { name: '手镯', path: '/products?category=hetian&type=bracelet', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20jade%20bangle%20bracelet%20smooth%20elegant&image_size=square' },
-        { name: '戒指', path: '/products?category=hetian&type=ring', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20jade%20ring%20gold%20setting%20luxury&image_size=square' },
-        { name: '摆件', path: '/products?category=hetian&type=ornament', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=white%20jade%20sculpture%20ornament%20home%20decor&image_size=square' },
-        { name: '原石', path: '/products?category=hetian&type=raw', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=raw%20white%20jade%20stone%20natural%20mineral&image_size=square' }
+        { name: '吊坠', path: '/products?category=hetian&type=pendant', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '手镯', path: '/products?category=hetian&type=bracelet', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '戒指', path: '/products?category=hetian&type=ring', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '摆件', path: '/products?category=hetian&type=ornament', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '原石', path: '/products?category=hetian&type=raw', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' }
       ]
     },
     {
@@ -132,11 +132,11 @@ const Header: React.FC = () => {
       name: '翡翠',
       path: '/products?category=jadeite',
       subcategories: [
-        { name: '手镯', path: '/products?category=jadeite&type=bracelet', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=emerald%20green%20jadeite%20bangle%20translucent&image_size=square', isHot: true },
-        { name: '吊坠', path: '/products?category=jadeite&type=pendant', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=green%20jadeite%20pendant%20buddha%20carved&image_size=square' },
-        { name: '戒指', path: '/products?category=jadeite&type=ring', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jadeite%20ring%20cabochon%20gold%20band&image_size=square' },
-        { name: '耳饰', path: '/products?category=jadeite&type=earring', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jadeite%20drop%20earrings%20elegant%20green&image_size=square' },
-        { name: '摆件', path: '/products?category=jadeite&type=ornament', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jadeite%20figurine%20sculpture%20collectible&image_size=square' }
+        { name: '手镯', path: '/products?category=jadeite&type=bracelet', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp', isHot: true },
+        { name: '吊坠', path: '/products?category=jadeite&type=pendant', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '戒指', path: '/products?category=jadeite&type=ring', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '耳饰', path: '/products?category=jadeite&type=earring', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '摆件', path: '/products?category=jadeite&type=ornament', image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' }
       ]
     },
     {
@@ -144,11 +144,11 @@ const Header: React.FC = () => {
       name: '水晶',
       path: '/products?category=crystal',
       subcategories: [
-        { name: '球体', path: '/products?category=crystal&type=sphere', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=clear%20quartz%20crystal%20sphere%20healing&image_size=square' },
-        { name: '摆件', path: '/products?category=crystal&type=ornament', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=amethyst%20crystal%20cluster%20display&image_size=square' },
-        { name: '首饰', path: '/products?category=crystal&type=jewelry', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=rose%20quartz%20necklace%20pink%20crystal&image_size=square' },
-        { name: '原石', path: '/products?category=crystal&type=raw', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=raw%20crystal%20geode%20natural%20formation&image_size=square' },
-        { name: '手串', path: '/products?category=crystal&type=beads', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=crystal%20bead%20bracelet%20colorful%20stones&image_size=square' }
+        { name: '球体', path: '/products?category=crystal&type=sphere', image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '摆件', path: '/products?category=crystal&type=ornament', image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '首饰', path: '/products?category=crystal&type=jewelry', image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '原石', path: '/products?category=crystal&type=raw', image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '手串', path: '/products?category=crystal&type=beads', image: 'https://images.unsplash.com/photo-1544441892-794166f1e3be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' }
       ]
     },
     {
@@ -156,11 +156,11 @@ const Header: React.FC = () => {
       name: '玛瑙',
       path: '/products?category=agate',
       subcategories: [
-        { name: '项链', path: '/products?category=agate&type=necklace', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=red%20agate%20necklace%20beaded%20jewelry&image_size=square' },
-        { name: '手串', path: '/products?category=agate&type=bracelet', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=banded%20agate%20bracelet%20natural%20patterns&image_size=square' },
-        { name: '摆件', path: '/products?category=agate&type=ornament', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=agate%20bookend%20polished%20home%20decor&image_size=square' },
-        { name: '原石', path: '/products?category=agate&type=raw', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=raw%20agate%20slice%20natural%20bands&image_size=square' },
-        { name: '雕件', path: '/products?category=agate&type=carving', image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=carved%20agate%20figurine%20artistic%20sculpture&image_size=square' }
+        { name: '项链', path: '/products?category=agate&type=necklace', image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '手串', path: '/products?category=agate&type=bracelet', image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '摆件', path: '/products?category=agate&type=ornament', image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '原石', path: '/products?category=agate&type=raw', image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' },
+        { name: '雕件', path: '/products?category=agate&type=carving', image: 'https://images.unsplash.com/photo-1578662015928-3dae4c8c8e0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80&fm=webp' }
       ]
     }
   ];
@@ -616,25 +616,25 @@ const Header: React.FC = () => {
 
               {/* 移动端导航 */}
               <nav className="space-y-1">
-                {mainCategories.map((category, index) => (
+                {categoriesData.map((category, index) => (
                   <div key={index}>
                     <Link
                       to={category.path}
                       onClick={() => setIsMenuOpen(false)}
                       className="block px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors font-medium"
                     >
-                      {category.label}
+                      {category.name}
                     </Link>
                     {category.subcategories && (
                       <div className="pl-6 space-y-1">
                         {category.subcategories.map((sub, subIndex) => (
                           <Link
                             key={subIndex}
-                            to={`${category.path}&type=${sub}`}
+                            to={sub.path}
                             onClick={() => setIsMenuOpen(false)}
                             className="block px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors"
                           >
-                            {sub}
+                            {sub.name}
                           </Link>
                         ))}
                       </div>

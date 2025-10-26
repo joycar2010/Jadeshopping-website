@@ -1,4 +1,4 @@
-import { routes } from '../router';
+// import { routes } from '../router';
 
 export interface LinkTestResult {
   url: string;
@@ -222,10 +222,15 @@ class LinkTester {
 
         // 尝试访问页面
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
           const response = await fetch(`${this.baseUrl}${link.url}`, {
             method: 'HEAD',
-            timeout: 3000
+            signal: controller.signal
           });
+          
+          clearTimeout(timeoutId);
           
           return {
             url: link.url,
@@ -239,9 +244,14 @@ class LinkTester {
         } catch (fetchError) {
           // 如果 HEAD 请求失败，尝试 GET 请求
           try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            
             const response = await fetch(`${this.baseUrl}${link.url}`, {
-              timeout: 3000
+              signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             return {
               url: link.url,
@@ -268,10 +278,15 @@ class LinkTester {
       if (link.type === 'external') {
         // 对于外部链接，检查HTTP状态
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
           const response = await fetch(link.url, {
             method: 'HEAD',
-            timeout: 5000
+            signal: controller.signal
           });
+          
+          clearTimeout(timeoutId);
           
           return {
             url: link.url,

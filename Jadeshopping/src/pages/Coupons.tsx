@@ -273,17 +273,17 @@ const Coupons: React.FC = () => {
                       { key: 'SHEIN CLUB', label: 'SHEIN CLUB' },
                       { key: 'Shipping Coupon', label: 'Shipping Coupon' },
                       { key: 'Discount Coupon', label: 'Discount Coupon' }
-                    ] as const).map(({ key, label, icon: Icon }) => (
+                    ] as const).map((item) => (
                       <button
-                        key={key}
-                        onClick={() => setUnusedFilter(key as any)}
+                        key={item.key}
+                        onClick={() => setUnusedFilter(item.key as any)}
                         className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
-                          unusedFilter === key ? 'bg-black text-white border-black' : 'text-gray-700 hover:bg-gray-50'
+                          unusedFilter === item.key ? 'bg-black text-white border-black' : 'text-gray-700 hover:bg-gray-50'
                         }`}
                       >
                         <span className="inline-flex items-center gap-1">
-                          {Icon ? <Icon className="h-3 w-3" /> : null}
-                          {label}
+                          {'icon' in item ? React.createElement(item.icon, { className: "h-3 w-3" }) : null}
+                          {item.label}
                         </span>
                       </button>
                     ))}
