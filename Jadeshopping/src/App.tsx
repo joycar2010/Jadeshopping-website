@@ -46,6 +46,10 @@ import PolicyPayments from "@/pages/PolicyPayments";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FloatingCart from "@/components/FloatingCart";
+import Sitemap from "@/pages/Sitemap";
+import Chat from "@/pages/Chat";
+import Feedback from "@/pages/Feedback";
+import FloatingSupport from "@/components/FloatingSupport";
 
 export default function App() {
   return (
@@ -96,6 +100,9 @@ export default function App() {
             <Route path="/service" element={<Service />} />
             <Route path="/shipping" element={<Shipping />} />
             <Route path="/returns" element={<Returns />} />
+            <Route path="/sitemap" element={<Sitemap />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/feedback" element={<Feedback />} />
 
             {/* 政策子分类页面 */}
             <Route path="/policy/coupons" element={<PolicyCoupons />} />
@@ -115,6 +122,7 @@ export default function App() {
         </main>
         <Footer />
         <FloatingCart />
+        <FloatingSupport />
       </div>
     </Router>
   );

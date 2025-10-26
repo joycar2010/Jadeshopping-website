@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronRight, Crown } from 'lucide-react';
+import { ChevronRight, Crown, HelpCircle } from 'lucide-react';
 import { useUserStore } from '../store/useUserStore';
 
 // 与 Wallet 页一致的默认头像占位
@@ -105,7 +105,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ groups, collapsible = t
 
   // 统一的激活状态判断逻辑（支持查询参数）
   const isRouteActive = (targetPath?: string) => {
-    if (!targetPath) return false;
+    if (!targetPath || typeof targetPath !== 'string') return false;
     const [targetBase, targetQuery] = targetPath.split('?');
     const currentBase = location.pathname;
     const currentQuery = location.search.replace(/^\?/, '');
@@ -127,6 +127,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ groups, collapsible = t
   };
 
   const preloadPath = (path: string) => {
+    if (typeof path !== 'string' || !path) return;
     try {
       const link = document.createElement('link');
       link.rel = 'prefetch';
@@ -171,7 +172,47 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ groups, collapsible = t
 
         {/* 导航菜单，与 Wallet 页 nav 完全同构 */}
         <nav className="p-2" role="navigation" aria-label="Account Navigation">
-          {groups.map((group, gi) => {
+          {(
+            (() => {
+              try {
+                const original = Array.isArray(groups) ? [...groups] : [];
+                const hasPath = (p: string) => original.some(g => Array.isArray(g.items) && g.items.some(i => (i as any).path === p));
+
+                const needChat = !hasPath('/chat');
+                const needFeedback = !hasPath('/feedback');
+
+                if (!needChat && !needFeedback) return original;
+
+                const serviceIndex = original.findIndex(g => (g.id === 'customer-service') || g.title === 'Customer Service' || g.titleCn === '客户服务');
+
+                const makeItem = (path: string, name: string, nameCn: string) => ({ name, nameCn, path, icon: HelpCircle });
+
+                if (serviceIndex >= 0) {
+                  const g = original[serviceIndex];
+                  const items = Array.isArray(g.items) ? [...g.items] : [];
+                  if (needChat) items.push(makeItem('/chat', 'Online Chat', '在线客服'));
+                  if (needFeedback) items.push(makeItem('/feedback', 'Feedback', '意见反馈'));
+                  original[serviceIndex] = { ...g, items };
+                  return original;
+                }
+
+                const newItems: any[] = [];
+                if (needChat) newItems.push(makeItem('/chat', 'Online Chat', '在线客服'));
+                if (needFeedback) newItems.push(makeItem('/feedback', 'Feedback', '意见反馈'));
+                return [
+                  ...original,
+                  {
+                    id: 'customer-service',
+                    title: 'Customer Service',
+                    titleCn: '客户服务',
+                    items: newItems,
+                  },
+                ];
+              } catch {
+                return groups || [];
+              }
+            })()
+          ).map((group, gi) => {
             const groupId = group.id || group.title;
             const isCollapsed = collapsible && collapsedGroups.includes(groupId);
             return (
@@ -196,19 +237,19 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ groups, collapsible = t
                 <div className={`flex flex-col gap-1 ${isCollapsed ? 'hidden' : ''}`}>
                   {group.items.map((item, ii) => {
                     const Icon = (item.icon ?? Crown) as any;
-                    const active = item.isActive ?? isRouteActive(item.path);
+                    const active = item.isActive ?? isRouteActive(item.path as any);
                     const blocked = (item.requiresAuth && !isLoggedIn) || item.disabled;
                     const displayName = localeIsZh ? (item.nameCn || item.name) : item.name;
 
                     return (
                       <Link
                         key={ii}
-                        to={blocked ? '#' : item.path}
-                        onMouseEnter={() => preloadPath(item.path)}
+                        to={(blocked || typeof (item.path as any) !== 'string') ? '#' : (item.path as any)}
+                        onMouseEnter={() => preloadPath(typeof (item.path as any) === 'string' ? (item.path as any) : '')}
                         onClick={(e) => {
                           if (blocked) {
                             e.preventDefault();
-                            navigate(`/login?redirect=${encodeURIComponent(item.path)}`);
+                            navigate(`/login?redirect=${encodeURIComponent(typeof (item.path as any) === 'string' ? (item.path as any) : '/')}`);
                           }
                         }}
                         aria-disabled={blocked}

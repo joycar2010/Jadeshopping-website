@@ -32,6 +32,7 @@ import Supplier from '../pages/Supplier';
 import Wholesale from '../pages/Wholesale';
 import Media from '../pages/Media';
 import LinkTestReport from '../components/LinkTestReport';
+import Sitemap from '../pages/Sitemap';
 
 const router = createBrowserRouter([
   {
@@ -124,6 +125,11 @@ const router = createBrowserRouter([
       {
         path: 'returns',
         element: <Returns />
+      },
+      // 网站地图
+      {
+        path: 'sitemap',
+        element: <Sitemap />
       },
       // 商务合作页面
       {

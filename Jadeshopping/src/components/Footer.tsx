@@ -182,18 +182,11 @@ const Footer: React.FC = () => {
               <p>&copy; {currentYear} Guaranteed antiques. 保留所有权利.</p>
             </div>
             <div className="flex space-x-6">
-              <span className="text-gray-500 cursor-not-allowed">
-                隐私政策
-              </span>
-              <span className="text-gray-500 cursor-not-allowed">
-                服务条款
-              </span>
-              <span className="text-gray-500 cursor-not-allowed">
-                网站地图
-              </span>
+              <Link to="/help" className="text-gray-400 hover:text-white transition-colors">隐私政策</Link>
+              <Link to="/service" className="text-gray-400 hover:text-white transition-colors">服务条款</Link>
+               <Link to="/sitemap" className="text-gray-400 hover:text-white transition-colors">网站地图</Link>
             </div>
           </div>
-          
           <div className="mt-4 text-xs text-gray-500">
             <p>京ICP备12345678号-1 | 京公网安备11010502012345号</p>
             <p className="mt-1">营业执照 | 食品经营许可证 | 出版物经营许可证</p>
