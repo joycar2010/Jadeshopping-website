@@ -259,7 +259,7 @@ const Wholesale: React.FC = () => {
             批发合作
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            玉石雅韵诚邀各地经销商、代理商加入我们的合作伙伴网络，共享玉石文化传承的商业价值
+            Guaranteed antiques 诚邀各地经销商、代理商加入我们的合作伙伴网络，共享玉石文化传承的商业价值
           </p>
         </div>
 
@@ -815,7 +815,7 @@ const Wholesale: React.FC = () => {
             携手共赢，共创辉煌
           </h2>
           <p className="text-lg text-gray-700 mb-8 max-w-3xl mx-auto">
-            玉石雅韵期待与您建立长期稳定的合作关系，
+            Guaranteed antiques 期待与您建立长期稳定的合作关系，
             共同开拓玉石市场，分享行业发展红利。
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

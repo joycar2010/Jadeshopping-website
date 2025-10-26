@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
+import AccountSidebar from '../components/AccountSidebar';
 import { 
   Search, 
   Package, 
@@ -19,9 +20,7 @@ import {
   Heart,
   HelpCircle,
   Settings,
-  LogOut,
   ChevronRight,
-  ChevronDown,
   Filter,
   MapPin,
   Phone,
@@ -29,8 +28,8 @@ import {
   Shield,
   Gift,
   Award,
-  Bell,
-  Menu
+  Crown,
+  Bell
 } from 'lucide-react';
 
 // 订单状态枚举
@@ -66,7 +65,7 @@ interface Order {
 }
 
 const Orders: React.FC = () => {
-  const { user, logout } = useUserStore();
+  const { user } = useUserStore();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -76,9 +75,7 @@ const Orders: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeNavItem, setActiveNavItem] = useState('orders');
-  const [expandedNavItems, setExpandedNavItems] = useState<string[]>(['orders']);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -158,8 +155,11 @@ const Orders: React.FC = () => {
       title: 'My Account',
       icon: User,
       items: [
+        { id: 'club', title: '会员俱乐部', link: '/club', icon: Award },
+        { id: 'vip-weizun', title: 'VIP', link: '/vip', icon: Crown },
         { id: 'profile', title: '个人资料', link: '/settings' },
-        { id: 'address', title: '地址簿', link: '/address' }
+        { id: 'address', title: '地址簿', link: '/address' },
+        { id: 'payments', title: '支付方式', link: '/payments' }
       ]
     },
     {
@@ -167,9 +167,9 @@ const Orders: React.FC = () => {
       title: 'My Assets',
       icon: Wallet,
       items: [
-        { id: 'coupons', title: '我的优惠券', link: '/settings' },
-        { id: 'points', title: '我的积分', link: '/settings' },
-        { id: 'wallet', title: '我的钱包', link: '/settings' },
+        { id: 'coupons', title: '我的优惠券', link: '/coupons' },
+        { id: 'points', title: '我的积分', link: '/points' },
+        { id: 'wallet', title: '我的钱包', link: '/wallet' },
         { id: 'gift-cards', title: '礼品卡', link: '/settings' }
       ]
     },
@@ -203,6 +203,7 @@ const Orders: React.FC = () => {
       items: [
         { id: 'help-center', title: '帮助中心', link: '/help' },
         { id: 'contact-us', title: '联系我们', link: '/contact' },
+        { id: 'buyback-center', title: '回购中心', link: '/buyback' },
         { id: 'live-chat', title: '在线客服', link: '/chat' }
       ]
     },
@@ -221,10 +222,13 @@ const Orders: React.FC = () => {
       title: 'Policy',
       icon: Shield,
       items: [
-        { id: 'shipping', title: '配送政策', link: '/policy/shipping' },
-        { id: 'return', title: '退货政策', link: '/policy/return' },
-        { id: 'privacy', title: '隐私政策', link: '/policy/privacy' },
-        { id: 'terms', title: '服务条款', link: '/policy/terms' }
+        { id: 'coupon-policy', title: '优惠券政策', link: '/policy/coupons' },
+        { id: 'points-policy', title: '积分政策', link: '/policy/points' },
+        { id: 'wallet-policy', title: '关于钱包', link: '/policy/wallet' },
+        { id: 'payment-policy', title: '支付方式', link: '/policy/payments' },
+        { id: 'shipping', title: '配送政策', link: '/shipping' },
+        { id: 'returns', title: '退货政策', link: '/returns' },
+        { id: 'privacy', title: '隐私政策', link: '/help' }
       ]
     }
   ];
@@ -277,14 +281,7 @@ const Orders: React.FC = () => {
     console.log(`处理订单 ${order.id} 的 ${action} 操作`);
   };
 
-  // 切换导航项展开状态
-  const toggleNavItem = (itemId: string) => {
-    setExpandedNavItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
+
 
   // 处理订单状态切换
   const handleTabChange = async (tabKey: string, event?: React.MouseEvent) => {
@@ -316,10 +313,7 @@ const Orders: React.FC = () => {
   };
 
   // 处理登出
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  
 
   // 订单详情模态框
   const OrderDetailModal = () => (
@@ -494,98 +488,16 @@ const Orders: React.FC = () => {
       {/* 主体内容 */}
       <div className="flex">
         {/* 左侧导航栏 */}
-        <aside className={`${sidebarCollapsed ? 'w-16' : 'w-80'} bg-white border-r border-gray-200 min-h-screen transition-all duration-300`}>
-          <div className="p-4">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="w-full flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          </div>
-
-          {!sidebarCollapsed && (
-            <nav className="px-4 pb-4">
-              <div className="space-y-2">
-                {navigationItems.map((section) => {
-                  const SectionIcon = section.icon;
-                  const isExpanded = expandedNavItems.includes(section.id);
-                  
-                  return (
-                    <div key={section.id} className="space-y-1">
-                      <button
-                        onClick={() => toggleNavItem(section.id)}
-                        className="w-full flex items-center justify-between p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <SectionIcon className="h-5 w-5" />
-                          <span className="font-medium">{section.title}</span>
-                        </div>
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </button>
-                      
-                      {isExpanded && (
-                        <div className="ml-8 space-y-1">
-                          {section.items.map((item) => {
-                            // 如果是订单相关链接，使用自定义点击处理
-                            if (section.id === 'orders' && item.link.includes('/orders')) {
-                              const tabKey = item.link.includes('?tab=') 
-                                ? item.link.split('?tab=')[1] 
-                                : 'all';
-                              
-                              return (
-                                <a
-                                  key={item.id}
-                                  href={item.link}
-                                  onClick={(e) => handleTabChange(tabKey, e)}
-                                  className={`block p-2 text-sm rounded-lg transition-colors cursor-pointer ${
-                                    item.active 
-                                      ? 'bg-black text-white' 
-                                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                  }`}
-                                >
-                                  {item.title}
-                                </a>
-                              );
-                            }
-                            
-                            // 其他链接保持原有的Link组件
-                            return (
-                              <Link
-                                key={item.id}
-                                to={item.link}
-                                className={`block p-2 text-sm rounded-lg transition-colors ${
-                                  item.active 
-                                    ? 'bg-black text-white' 
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                }`}
-                              >
-                                {item.title}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                
-                {/* 退出登录 */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 p-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Sign Out</span>
-                </button>
-              </div>
-            </nav>
-          )}
-        </aside>
+        <AccountSidebar
+          groups={navigationItems.map((section) => ({
+            title: section.title,
+            items: section.items.map((item) => ({
+              name: item.title,
+              path: item.link,
+              icon: (item as any).icon ?? section.icon,
+            })),
+          }))}
+        />
 
         {/* 右侧主内容区 */}
         <main className="flex-1 p-6">

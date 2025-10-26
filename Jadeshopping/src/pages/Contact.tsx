@@ -131,7 +131,7 @@ const Contact: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">微信公众号</p>
-                    <p className="text-sm text-gray-600">玉石雅韵官方</p>
+                    <p className="text-sm text-gray-600">Guaranteed antiques 官方</p>
                   </div>
                 </div>
               </div>

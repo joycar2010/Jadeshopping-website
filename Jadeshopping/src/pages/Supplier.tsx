@@ -721,7 +721,7 @@ const Supplier: React.FC = () => {
             携手共赢，共创未来
           </h2>
           <p className="text-lg text-gray-700 mb-8 max-w-3xl mx-auto">
-            玉石雅韵致力于与优质供应商建立长期稳定的合作关系，
+            Guaranteed antiques 致力于与优质供应商建立长期稳定的合作关系，
             共同为客户提供最优质的产品和服务。期待与您的合作！
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

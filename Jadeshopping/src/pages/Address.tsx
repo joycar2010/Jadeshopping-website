@@ -1,31 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
-import { useAddressStore } from '../store/useAddressStore';
-import { 
-  Search, 
-  Package, 
+import AccountSidebar from '../components/AccountSidebar';
+import {
+  Package,
   User,
   Wallet,
   Heart,
   HelpCircle,
-  LogOut,
-  ChevronRight,
-  ChevronDown,
-  Menu,
-  ShoppingCart,
   MapPin,
   Plus,
   Edit,
   Trash2,
   Check,
   X,
-  Phone,
-  Mail,
   Shield,
   Gift,
   Award,
-  Bell
+  Crown
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -60,7 +52,7 @@ interface FormErrors {
 }
 
 const Address: React.FC = () => {
-  const { user, logout } = useUserStore();
+  const { user } = useUserStore();
   const navigate = useNavigate();
   
   // 状态管理
@@ -77,8 +69,6 @@ const Address: React.FC = () => {
     isDefault: false
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [expandedNavItems, setExpandedNavItems] = useState<string[]>(['account']);
 
   // 检查用户登录状态
   useEffect(() => {
@@ -122,8 +112,11 @@ const Address: React.FC = () => {
       title: 'My Account',
       icon: User,
       items: [
+        { id: 'club', title: '会员俱乐部', link: '/club', icon: Award },
+        { id: 'vip-weizun', title: 'VIP', link: '/vip', icon: Crown },
         { id: 'profile', title: '个人资料', link: '/settings' },
-        { id: 'address', title: '地址簿', link: '/address', active: true }
+        { id: 'address', title: '地址簿', link: '/address', active: true },
+        { id: 'payments', title: '支付方式', link: '/payments' }
       ]
     },
     {
@@ -131,9 +124,9 @@ const Address: React.FC = () => {
       title: 'My Assets',
       icon: Wallet,
       items: [
-        { id: 'coupons', title: '我的优惠券', link: '/settings' },
-        { id: 'points', title: '我的积分', link: '/settings' },
-        { id: 'wallet', title: '我的钱包', link: '/settings' },
+        { id: 'coupons', title: '我的优惠券', link: '/coupons' },
+        { id: 'points', title: '我的积分', link: '/points' },
+        { id: 'wallet', title: '我的钱包', link: '/wallet' },
         { id: 'gift-cards', title: '礼品卡', link: '/settings' }
       ]
     },
@@ -167,6 +160,7 @@ const Address: React.FC = () => {
       items: [
         { id: 'help-center', title: '帮助中心', link: '/help' },
         { id: 'contact-us', title: '联系我们', link: '/contact' },
+        { id: 'buyback-center', title: '回购中心', link: '/buyback' },
         { id: 'live-chat', title: '在线客服', link: '/chat' }
       ]
     },
@@ -185,10 +179,13 @@ const Address: React.FC = () => {
       title: 'Policy',
       icon: Shield,
       items: [
-        { id: 'shipping', title: '配送政策', link: '/policy/shipping' },
-        { id: 'returns', title: '退货政策', link: '/policy/returns' },
-        { id: 'privacy', title: '隐私政策', link: '/policy/privacy' },
-        { id: 'terms', title: '服务条款', link: '/policy/terms' }
+        { id: 'coupon-policy', title: '优惠券政策', link: '/policy/coupons' },
+        { id: 'points-policy', title: '积分政策', link: '/policy/points' },
+        { id: 'wallet-policy', title: '关于钱包', link: '/policy/wallet' },
+        { id: 'payment-policy', title: '支付方式', link: '/policy/payments' },
+        { id: 'shipping', title: '配送政策', link: '/shipping' },
+        { id: 'returns', title: '退货政策', link: '/returns' },
+        { id: 'privacy', title: '隐私政策', link: '/help' }
       ]
     }
   ];
@@ -204,20 +201,9 @@ const Address: React.FC = () => {
     '香港特别行政区', '澳门特别行政区', '台湾省'
   ];
 
-  // 导航项展开/折叠
-  const toggleNavItem = (itemId: string) => {
-    setExpandedNavItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
+  
 
-  // 退出登录
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  
 
   // 表单验证
   const validateForm = () => {
@@ -346,74 +332,18 @@ const Address: React.FC = () => {
 
       {/* 主体内容 */}
       <div className="flex">
-        {/* 左侧导航栏 - 与Orders页面完全一致 */}
-        <aside className={`${sidebarCollapsed ? 'w-16' : 'w-80'} bg-white border-r border-gray-200 min-h-screen transition-all duration-300`}>
-          <div className="p-4">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="w-full flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          </div>
-
-          {!sidebarCollapsed && (
-            <nav className="px-4 pb-4">
-              <div className="space-y-2">
-                {navigationItems.map((section) => {
-                  const SectionIcon = section.icon;
-                  const isExpanded = expandedNavItems.includes(section.id);
-                  
-                  return (
-                    <div key={section.id} className="space-y-1">
-                      <button
-                        onClick={() => toggleNavItem(section.id)}
-                        className="w-full flex items-center justify-between p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <SectionIcon className="h-5 w-5" />
-                          <span className="font-medium">{section.title}</span>
-                        </div>
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </button>
-                      
-                      {isExpanded && (
-                        <div className="ml-8 space-y-1">
-                          {section.items.map((item) => (
-                            <Link
-                              key={item.id}
-                              to={item.link}
-                              className={`block p-2 text-sm rounded-lg transition-colors ${
-                                item.active 
-                                  ? 'bg-black text-white' 
-                                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                              }`}
-                            >
-                              {item.title}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                
-                {/* 退出登录 */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 p-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Sign Out</span>
-                </button>
-              </div>
-            </nav>
-          )}
-        </aside>
+        {/* 左侧导航栏 */}
+        <AccountSidebar
+          groups={navigationItems.map((section) => ({
+            title: section.title,
+            items: section.items.map((item) => ({
+              name: item.title,
+              path: item.link,
+              icon: (item as any).icon ?? section.icon,
+              isActive: (item as any).active,
+            })),
+          }))}
+        />
 
         {/* 右侧主内容区 - SHEIN风格的"我的地址簿" */}
         <main className="flex-1 p-6">

@@ -26,7 +26,7 @@ const About: React.FC = () => {
         {/* 页面标题 */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            玉石雅韵 - 传承千年玉文化
+            Guaranteed antiques - 传承千年玉文化
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             专注于高品质玉石的甄选与销售，致力于传承和弘扬中华玉文化，为每一位玉石爱好者提供最优质的产品和服务
@@ -44,11 +44,11 @@ const About: React.FC = () => {
           </div>
           <div className="flex flex-col justify-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
-              关于玉石雅韵
+              关于 Guaranteed antiques
             </h2>
             <div className="space-y-4 text-gray-600">
               <p>
-                玉石雅韵成立于2010年，是一家专业从事玉石文化传播和高端玉石销售的企业。我们秉承"以玉会友，以诚待人"的经营理念，致力于为广大玉石爱好者提供最优质的产品和最专业的服务。
+                Guaranteed antiques 成立于2010年，是一家专业从事玉石文化传播和高端玉石销售的企业。我们秉承"以玉会友，以诚待人"的经营理念，致力于为广大玉石爱好者提供最优质的产品和最专业的服务。
               </p>
               <p>
                 公司拥有一支经验丰富的专业团队，包括资深的玉石鉴定师、设计师和工艺师。我们与国内外知名玉石产地建立了长期稳定的合作关系，确保每一件产品都具有优良的品质和独特的文化内涵。
@@ -141,7 +141,7 @@ const About: React.FC = () => {
             了解更多
           </h2>
           <p className="text-gray-600 mb-8">
-            想要了解更多关于玉石雅韵的信息？欢迎联系我们
+            想要了解更多关于 Guaranteed antiques 的信息？欢迎联系我们
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

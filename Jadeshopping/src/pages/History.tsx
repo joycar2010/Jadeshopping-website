@@ -8,7 +8,7 @@ const History: React.FC = () => {
     {
       year: '2010',
       title: '公司成立',
-      description: '玉石雅韵在北京正式成立，专注于高端玉石的甄选与销售',
+      description: 'Guaranteed antiques 在北京正式成立，专注于高端玉石的甄选与销售',
       achievements: ['注册资本500万元', '首家实体店开业', '建立供应商网络'],
       image: 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20jade%20store%20opening%20ceremony%20elegant%20interior&image_size=landscape_4_3'
     },
@@ -82,7 +82,7 @@ const History: React.FC = () => {
             发展历程
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            十四年砥砺前行，见证玉石雅韵从初创企业成长为行业领军品牌的辉煌历程
+            十四年砥砺前行，见证 Guaranteed antiques 从初创企业成长为行业领军品牌的辉煌历程
           </p>
         </div>
 
@@ -172,7 +172,7 @@ const History: React.FC = () => {
         <div className="mt-20 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">未来展望</h2>
           <p className="text-xl text-gray-700 mb-8 max-w-4xl mx-auto">
-            面向未来，玉石雅韵将继续秉承"传承玉文化，服务玉石爱好者"的使命，
+            面向未来，Guaranteed antiques 将继续秉承"传承玉文化，服务玉石爱好者"的使命，
             不断创新发展，致力于成为全球最具影响力的玉石文化传播企业。
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">

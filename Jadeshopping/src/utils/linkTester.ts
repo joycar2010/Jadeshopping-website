@@ -131,19 +131,24 @@ class LinkTester {
     { url: '/checkout', source: 'FloatingCart.tsx', type: 'internal' as const },
   ];
 
-  // 定义已知的有效路由
+  // 有效路由白名单
   private validRoutes = [
     '/',
     '/products',
-    '/product/:id',
+    '/product/',
     '/cart',
     '/checkout',
     '/login',
-
     '/orders',
     '/favorites',
-    '/settings',
     '/address',
+    '/settings',
+    '/payments',
+    '/coupons',
+    '/points',
+    '/wallet',
+    '/gift-card',
+    '/recently-viewed',
     '/help',
     '/contact',
     '/about',
@@ -156,6 +161,31 @@ class LinkTester {
     '/supplier',
     '/wholesale',
     '/media',
+    '/policy/coupons',
+    '/policy/points',
+    '/policy/wallet',
+    '/policy/payments',
+    '/club',
+    '/vip',
+    '/wallet',
+    '/settings',
+    '/address',
+    '/payments',
+    '/coupons',
+    '/points',
+    '/gift-card',
+    '/orders',
+    '/favorites',
+    '/recently-viewed',
+    '/follow',
+    '/help',
+    '/contact',
+    '/policy/coupons',
+    '/policy/points',
+    '/policy/wallet',
+    '/policy/payments',
+    '/shipping',
+    '/returns'
   ];
 
   async testLink(link: { url: string; source: string; type: string }): Promise<LinkTestResult> {

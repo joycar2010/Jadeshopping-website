@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
+import AccountSidebar from '../components/AccountSidebar';
 import { 
   Search, 
   Package, 
@@ -14,17 +15,14 @@ import {
   Heart,
   HelpCircle,
   Settings as SettingsIcon,
-  LogOut,
-  ChevronRight,
-  ChevronDown,
   MapPin,
   Phone,
   Mail,
   Shield,
   Gift,
   Award,
+  Crown,
   Bell,
-  Menu,
   Edit,
   Download,
   Trash2,
@@ -32,13 +30,11 @@ import {
 } from 'lucide-react';
 
 const Settings: React.FC = () => {
-  const { user, logout } = useUserStore();
+  const { user } = useUserStore();
   const navigate = useNavigate();
   
   // 状态管理
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeNavItem, setActiveNavItem] = useState('account');
-  const [expandedNavItems, setExpandedNavItems] = useState<string[]>(['account']);
+
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
@@ -65,8 +61,11 @@ const Settings: React.FC = () => {
       title: 'My Account',
       icon: User,
       items: [
+        { id: 'club', title: '会员俱乐部', link: '/club', icon: Award },
+        { id: 'vip-weizun', title: 'VIP', link: '/vip', icon: Crown },
         { id: 'profile', title: '个人资料', link: '/settings' },
-        { id: 'address', title: '地址簿', link: '/address' }
+        { id: 'address', title: '地址簿', link: '/address' },
+        { id: 'payments', title: '支付方式', link: '/payments' }
       ]
     },
     {
@@ -74,9 +73,9 @@ const Settings: React.FC = () => {
       title: 'My Assets',
       icon: Wallet,
       items: [
-        { id: 'coupons', title: '我的优惠券', link: '/settings' },
-        { id: 'points', title: '我的积分', link: '/settings' },
-        { id: 'wallet', title: '我的钱包', link: '/settings' },
+        { id: 'coupons', title: '我的优惠券', link: '/coupons' },
+        { id: 'points', title: '我的积分', link: '/points' },
+        { id: 'wallet', title: '我的钱包', link: '/wallet' },
         { id: 'gift-cards', title: '礼品卡', link: '/settings' }
       ]
     },
@@ -110,6 +109,7 @@ const Settings: React.FC = () => {
       items: [
         { id: 'help-center', title: '帮助中心', link: '/help' },
         { id: 'contact-us', title: '联系我们', link: '/contact' },
+        { id: 'buyback-center', title: '回购中心', link: '/buyback' },
         { id: 'live-chat', title: '在线客服', link: '/chat' }
       ]
     },
@@ -128,28 +128,18 @@ const Settings: React.FC = () => {
       title: 'Policy',
       icon: Shield,
       items: [
-        { id: 'shipping', title: '配送政策', link: '/policy/shipping' },
-        { id: 'return', title: '退货政策', link: '/policy/return' },
-        { id: 'privacy', title: '隐私政策', link: '/policy/privacy' },
-        { id: 'terms', title: '服务条款', link: '/policy/terms' }
+        { id: 'coupon-policy', title: '优惠券政策', link: '/policy/coupons' },
+        { id: 'points-policy', title: '积分政策', link: '/policy/points' },
+        { id: 'wallet-policy', title: '关于钱包', link: '/policy/wallet' },
+        { id: 'payment-policy', title: '支付方式', link: '/policy/payments' },
+        { id: 'shipping', title: '配送政策', link: '/shipping' },
+        { id: 'returns', title: '退货政策', link: '/returns' },
+        { id: 'privacy', title: '隐私政策', link: '/help' }
       ]
     }
   ];
 
-  // 切换导航项展开状态
-  const toggleNavItem = (itemId: string) => {
-    setExpandedNavItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
-
-  // 处理登出
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+ 
 
   // 处理密码修改
   const handlePasswordChange = () => {
@@ -421,75 +411,17 @@ const Settings: React.FC = () => {
       {/* 主体内容 */}
       <div className="flex">
         {/* 左侧导航栏 */}
-        <aside className={`bg-white shadow-sm transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-80'} min-h-screen border-r border-gray-200`}>
-          <div className="p-4">
-            {/* 菜单切换按钮 */}
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors mb-6"
-            >
-              <Menu className="h-5 w-5 text-gray-600" />
-            </button>
-
-            {/* 导航菜单 */}
-            <nav className="space-y-2">
-              {navigationItems.map((section) => {
-                const Icon = section.icon;
-                const isExpanded = expandedNavItems.includes(section.id);
-                
-                return (
-                  <div key={section.id}>
-                    <button
-                      onClick={() => toggleNavItem(section.id)}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
-                        section.id === activeNavItem ? 'bg-gray-100' : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Icon className="h-5 w-5 text-gray-600" />
-                        {!sidebarCollapsed && (
-                          <span className="font-medium text-gray-900">{section.title}</span>
-                        )}
-                      </div>
-                      {!sidebarCollapsed && (
-                        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${
-                          isExpanded ? 'rotate-180' : ''
-                        }`} />
-                      )}
-                    </button>
-                    
-                    {!sidebarCollapsed && isExpanded && (
-                      <div className="ml-8 mt-2 space-y-1">
-                        {section.items.map((item) => (
-                          <Link
-                            key={item.id}
-                            to={item.link}
-                            className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
-                              item.active ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'
-                            }`}
-                          >
-                            {item.title}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
-
-            {/* 退出登录 */}
-            {!sidebarCollapsed && (
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center space-x-3 p-3 mt-8 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <LogOut className="h-5 w-5" />
-                <span className="font-medium">Sign Out</span>
-              </button>
-            )}
-          </div>
-        </aside>
+        <AccountSidebar
+          groups={navigationItems.map((section) => ({
+            title: section.title,
+            items: section.items.map((item) => ({
+              name: item.title,
+              path: item.link,
+              icon: (item as any).icon ?? section.icon,
+              isActive: (item as any).active,
+            }))
+          }))}
+        />
 
         {/* 右侧主内容区 */}
         <main className="flex-1 p-8">
@@ -506,6 +438,28 @@ const Settings: React.FC = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Information</h2>
                 
                 <div className="space-y-6">
+                  {/* Member CLUB 快捷入口 */}
+                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Award className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <h3 className="font-medium text-gray-900">Member CLUB</h3>
+                        <p className="text-sm text-gray-600">订阅会员，解锁专属优惠与权益</p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/club"
+                      onClick={(e) => {
+                        if (!user) {
+                          e.preventDefault();
+                          navigate(`/login?redirect=${encodeURIComponent('/club')}`);
+                        }
+                      }}
+                      className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 active:bg-gray-900 transition-colors text-sm font-medium"
+                    >
+                      GO TO CLUB
+                    </Link>
+                  </div>
                   {/* 邮箱管理 */}
                   <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-center space-x-4">

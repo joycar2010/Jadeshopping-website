@@ -324,7 +324,7 @@ const Service: React.FC = () => {
           </h2>
           <div className="max-w-4xl mx-auto">
             <p className="text-lg text-gray-700 mb-6">
-              玉石雅韵始终坚持"客户至上，服务第一"的原则，我们承诺为每一位客户提供：
+              Guaranteed antiques 始终坚持"客户至上，服务第一"的原则，我们承诺为每一位客户提供：
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
               <div className="flex items-start">

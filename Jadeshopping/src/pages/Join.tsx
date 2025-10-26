@@ -215,7 +215,7 @@ const Join: React.FC = () => {
             招商加盟
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            携手玉石雅韵，共创财富未来。我们诚邀有志之士加入我们的大家庭，共同开拓玉石市场
+            携手 Guaranteed antiques，共创财富未来。我们诚邀有志之士加入我们的大家庭，共同开拓玉石市场
           </p>
         </div>
 
@@ -651,7 +651,7 @@ const Join: React.FC = () => {
           </h2>
           <p className="text-lg text-gray-700 mb-8 max-w-3xl mx-auto">
             玉石市场前景广阔，现在正是加入的最佳时机。
-            选择玉石雅韵，选择成功的开始。让我们携手共创美好未来！
+            选择 Guaranteed antiques，选择成功的开始。让我们携手共创美好未来！
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

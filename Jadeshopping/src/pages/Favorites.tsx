@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AccountSidebar from '../components/AccountSidebar';
 import { 
   Heart, 
   ShoppingCart, 
@@ -16,6 +17,7 @@ import {
   UserPlus,
   Wallet,
   Award,
+  Crown,
   Shield,
   Truck,
   RotateCcw,
@@ -78,18 +80,20 @@ const Favorites: React.FC = () => {
       title: 'My Account',
       titleCn: '我的账户',
       items: [
-        { name: 'SHEIN CLUB', nameCn: 'VIP会员', path: '/settings', icon: Award },
+        { name: 'Member CLUB', nameCn: '会员俱乐部', path: '/club', icon: Award },
+        { name: 'VIP', nameCn: 'VIP', path: '/vip', icon: Crown },
         { name: 'Profile', nameCn: '个人资料', path: '/settings', icon: User },
-        { name: 'Address Book', nameCn: '地址簿', path: '/address', icon: Package }
+        { name: 'Address Book', nameCn: '地址簿', path: '/address', icon: Package },
+        { name: 'Payment Methods', nameCn: '支付方式', path: '/payments', icon: CreditCard }
       ]
     },
     {
       title: 'My Assets',
       titleCn: '我的资产',
       items: [
-        { name: 'My Coupons', nameCn: '我的优惠券', path: '/settings', icon: Gift },
-        { name: 'My Points', nameCn: '我的积分', path: '/settings', icon: Star },
-        { name: 'My Wallet', nameCn: '我的钱包', path: '/settings', icon: Wallet },
+        { name: 'My Coupons', nameCn: '我的优惠券', path: '/coupons', icon: Gift },
+        { name: 'My Points', nameCn: '我的积分', path: '/points', icon: Star },
+        { name: 'My Wallet', nameCn: '我的钱包', path: '/wallet', icon: Wallet },
         { name: 'Gift Cards', nameCn: '礼品卡', path: '/settings', icon: Gift }
       ]
     },
@@ -98,9 +102,11 @@ const Favorites: React.FC = () => {
       titleCn: '我的订单',
       items: [
         { name: 'All Orders', nameCn: '所有订单', path: '/orders', icon: Package },
-        { name: 'Pending Payment', nameCn: '待付款', path: '/orders?status=pending', icon: CreditCard },
-        { name: 'Processing', nameCn: '处理中', path: '/orders?status=processing', icon: Package },
-        { name: 'Shipped', nameCn: '已发货', path: '/orders?status=shipped', icon: Truck }
+        { name: 'Pending Payment', nameCn: '待付款', path: '/orders?tab=unpaid', icon: CreditCard },
+        { name: 'Processing', nameCn: '处理中', path: '/orders?tab=processing', icon: Package },
+        { name: 'Shipped', nameCn: '已发货', path: '/orders?tab=shipped', icon: Truck },
+        { name: 'Review', nameCn: '待评价', path: '/orders?tab=review', icon: Star },
+        { name: 'Return', nameCn: '退货', path: '/orders?tab=return', icon: RotateCcw }
       ]
     },
     {
@@ -109,8 +115,8 @@ const Favorites: React.FC = () => {
       isActive: true,
       items: [
         { name: 'Wish List', nameCn: '心愿单', path: '/favorites', icon: Heart, isActive: true },
-        { name: 'Recently Viewed', nameCn: '最近浏览', path: '/history', icon: Eye },
-        { name: 'Follow', nameCn: '关注', path: '/favorites', icon: UserPlus }
+        { name: 'Recently Viewed', nameCn: '最近浏览', path: '/recently-viewed', icon: Eye },
+        { name: 'Follow', nameCn: '关注', path: '/follow', icon: UserPlus }
       ]
     },
     {
@@ -118,7 +124,8 @@ const Favorites: React.FC = () => {
       titleCn: '客户服务',
       items: [
         { name: 'Help Center', nameCn: '帮助中心', path: '/help', icon: HelpCircle },
-        { name: 'Contact Us', nameCn: '联系我们', path: '/contact', icon: HelpCircle }
+        { name: 'Contact Us', nameCn: '联系我们', path: '/contact', icon: HelpCircle },
+        { name: 'Buyback Center', nameCn: '回购中心', path: '/buyback', icon: HelpCircle }
       ]
     },
     {
@@ -133,6 +140,10 @@ const Favorites: React.FC = () => {
       title: 'Policy',
       titleCn: '政策',
       items: [
+        { name: 'Coupon Policy', nameCn: '优惠券政策', path: '/policy/coupons', icon: Gift },
+        { name: 'Points Policy', nameCn: '积分政策', path: '/policy/points', icon: Star },
+        { name: 'About Wallet', nameCn: '关于钱包', path: '/policy/wallet', icon: Wallet },
+        { name: 'Payment Methods', nameCn: '支付方式', path: '/policy/payments', icon: CreditCard },
         { name: 'Shipping', nameCn: '配送政策', path: '/shipping', icon: Truck },
         { name: 'Returns', nameCn: '退货政策', path: '/returns', icon: RotateCcw },
         { name: 'Privacy', nameCn: '隐私政策', path: '/help', icon: Shield }
@@ -147,69 +158,7 @@ const Favorites: React.FC = () => {
         <div className="flex gap-8">
           {/* 左侧导航栏 */}
           <div className="w-80 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              {/* 用户信息头部 */}
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={user.avatar || 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20elegant%20person&image_size=square'}
-                    alt={user.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                    <p className="text-sm text-gray-500">玉石雅韵会员</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 导航菜单 */}
-              <div className="py-2">
-                {sidebarMenus.map((menu, menuIndex) => (
-                  <div key={menuIndex} className="mb-1">
-                    <div className={`px-6 py-3 text-sm font-medium ${menu.isActive ? 'bg-gray-50 text-black' : 'text-gray-600'}`}>
-                      {menu.titleCn}
-                    </div>
-                    <div className="space-y-1">
-                      {menu.items.map((item, itemIndex) => (
-                        <Link
-                          key={itemIndex}
-                          to={item.path}
-                          className={`flex items-center justify-between px-8 py-2 text-sm transition-colors ${
-                            item.isActive 
-                              ? 'bg-black text-white' 
-                              : 'text-gray-600 hover:text-black hover:bg-gray-50'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.nameCn}</span>
-                          </div>
-                          <ChevronRight className="h-3 w-3" />
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-
-                {/* 退出登录 */}
-                <div className="border-t border-gray-100 mt-4 pt-4">
-                  <button
-                    onClick={() => {
-                      logout();
-                      navigate('/');
-                    }}
-                    className="flex items-center justify-between w-full px-6 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <LogOut className="h-4 w-4" />
-                      <span>退出登录</span>
-                    </div>
-                    <ChevronRight className="h-3 w-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <AccountSidebar groups={sidebarMenus} />
           </div>
 
           {/* 右侧主内容区 */}

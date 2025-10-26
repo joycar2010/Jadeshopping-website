@@ -7,11 +7,14 @@ import ProductDetail from '../pages/ProductDetail';
 import Cart from '../pages/Cart';
 import Checkout from '../pages/Checkout';
 import Login from '../pages/Login';
+import VIP from '../pages/VIP';
 
 import Orders from '../pages/Orders';
 import Favorites from '../pages/Favorites';
 import Address from '../pages/Address';
 import Settings from '../pages/Settings';
+import Payments from '../pages/Payments';
+import Buyback from '../pages/Buyback';
 import NotFound from '../pages/NotFound';
 // 公司相关页面
 import About from '../pages/About';
@@ -71,6 +74,22 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <Settings />
+      },
+      {
+        path: 'payments',
+        element: <Payments />
+      },
+      {
+        path: 'vip',
+        element: <VIP />
+      },
+      {
+        path: 'vip/weizun',
+        element: <VIP />
+      },
+      {
+        path: 'buyback',
+        element: <Buyback />
       },
       // 公司相关页面
       {

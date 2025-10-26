@@ -516,7 +516,7 @@ const Returns: React.FC = () => {
           </h2>
           <div className="max-w-4xl mx-auto">
             <p className="text-lg text-gray-700 mb-6">
-              玉石雅韵承诺为每一位客户提供公平、透明的退换货服务
+              Guaranteed antiques 承诺为每一位客户提供公平、透明的退换货服务
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex items-center">

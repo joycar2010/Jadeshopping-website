@@ -86,7 +86,7 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link to="/" className="inline-block">
-            <h1 className="text-3xl font-bold text-gradient">玉石雅韵</h1>
+            <h1 className="text-3xl font-bold text-gradient">Guaranteed antiques</h1>
           </Link>
           <h2 className="mt-6 text-2xl font-bold text-gray-900">
             {isLogin ? '登录您的账户' : '创建新账户'}

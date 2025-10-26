@@ -436,7 +436,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">为什么选择玉石雅韵</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">为什么选择 Guaranteed antiques</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               专业、诚信、品质，我们致力于为每一位客户提供最优质的玉石产品和服务
             </p>

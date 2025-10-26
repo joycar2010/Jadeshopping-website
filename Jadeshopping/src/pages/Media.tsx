@@ -287,7 +287,7 @@ const Media: React.FC = () => {
             媒体合作
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            玉石雅韵诚邀各大媒体平台、内容创作者、营销机构等合作伙伴，共同传播玉石文化，创造更大价值
+            Guaranteed antiques 诚邀各大媒体平台、内容创作者、营销机构等合作伙伴，共同传播玉石文化，创造更大价值
           </p>
         </div>
 
@@ -831,7 +831,7 @@ const Media: React.FC = () => {
             携手传播玉石文化，共创美好未来
           </h2>
           <p className="text-lg text-gray-700 mb-8 max-w-3xl mx-auto">
-            玉石雅韵期待与更多优秀的媒体伙伴合作，
+            Guaranteed antiques 期待与更多优秀的媒体伙伴合作，
             共同传播中华玉石文化，让更多人了解和喜爱玉石艺术。
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

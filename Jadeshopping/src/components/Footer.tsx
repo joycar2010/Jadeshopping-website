@@ -1,9 +1,23 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { useLogoStore } from '../store/useLogoStore';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, MessageCircle } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+
+  const { footerLogoSrc, setFooterLogo } = useLogoStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleFooterLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setFooterLogo(result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const footerSections = [
     {
@@ -51,10 +65,35 @@ const Footer: React.FC = () => {
           {/* 品牌信息 */}
           <div className="lg:col-span-1">
             <Link to="/" className="inline-block mb-4">
-              <h2 className="text-2xl font-bold text-gradient-white">玉石雅韵</h2>
+              <div className="flex items-center gap-2">
+                <img
+                  src={footerLogoSrc}
+                  alt="footer logo"
+                  className="object-contain h-auto max-w-full cursor-pointer"
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={(e) => {
+                    const img = e.currentTarget as HTMLImageElement;
+                    const halfW = Math.max(1, Math.round(img.naturalWidth / 2));
+                    img.style.width = `${halfW}px`;
+                    img.style.height = 'auto';
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/guaranteed-antiques-logo.png'; }}
+                />
+                <h2 className="text-xl font-semibold text-gradient-white">Guaranteed antiques</h2>
+              </div>
             </Link>
+            <input
+              ref={fileInputRef}
+              id="footerLogoUpload"
+              type="file"
+              accept="image/*"
+              onChange={handleFooterLogoUpload}
+              className="hidden"
+            />
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
-              传承千年玉石文化，精选优质玉石原料，为您提供最纯正的玉石艺术品。每一件商品都承载着深厚的文化底蕴和精湛的工艺。
+              传承千年玉石文化，精选优质玉石原料，为您提供最纯正的玉石艺术品。每一件商品都承载着深深的文化底蕴和精湛的工艺。
             </p>
             
             {/* 联系信息 */}
@@ -102,28 +141,28 @@ const Footer: React.FC = () => {
               <span className="text-sm text-gray-300">关注我们:</span>
               <div className="flex space-x-4">
                 <a
-                  href="#"
+                  href="http://localhost:5174/follow"
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-label="微信"
                 >
                   <MessageCircle className="h-5 w-5" />
                 </a>
                 <a
-                  href="#"
+                  href="http://localhost:5174/follow"
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-label="微博"
                 >
                   <Twitter className="h-5 w-5" />
                 </a>
                 <a
-                  href="#"
+                  href="http://localhost:5174/follow"
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-label="Instagram"
                 >
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a
-                  href="#"
+                  href="http://localhost:5174/follow"
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-label="Facebook"
                 >
@@ -140,7 +179,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
             <div className="mb-2 md:mb-0">
-              <p>&copy; {currentYear} 玉石雅韵. 保留所有权利.</p>
+              <p>&copy; {currentYear} Guaranteed antiques. 保留所有权利.</p>
             </div>
             <div className="flex space-x-6">
               <span className="text-gray-500 cursor-not-allowed">

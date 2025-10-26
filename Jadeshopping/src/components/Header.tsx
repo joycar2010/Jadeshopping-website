@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Heart, Gift, Truck, Star, ChevronDown, Settings, LogOut, Package, UserCircle, ChevronRight, Grid3X3 } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { useUserStore } from '../store/useUserStore';
+import { useLocaleStore } from '../store/useLocaleStore';
+import { useLogoStore } from '../store/useLogoStore';
 
 // SHEIN风格的分类数据结构
 interface SubCategory {
@@ -28,6 +30,9 @@ const Header: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCartMenu, setShowCartMenu] = useState(false);
+  
+  const { headerLogoSrc, setHeaderLogo, swapLogos } = useLogoStore();
+  
   const navigate = useNavigate();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const categoriesMenuRef = useRef<HTMLDivElement>(null);
@@ -35,6 +40,7 @@ const Header: React.FC = () => {
   
   const { getTotalItems, items, totalAmount } = useCartStore();
   const { user, logout } = useUserStore();
+  const { locale, toggleLocale } = useLocaleStore();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +49,17 @@ const Header: React.FC = () => {
       setSearchTerm('');
     }
   };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = reader.result as string;
+    setHeaderLogo(result);
+  };
+  reader.readAsDataURL(file);
+};
 
   // 点击外部关闭菜单
   useEffect(() => {
@@ -63,6 +80,14 @@ const Header: React.FC = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('swapLogo') && !sessionStorage.getItem('logo-swapped')) {
+      swapLogos();
+      sessionStorage.setItem('logo-swapped', '1');
+    }
   }, []);
 
   // SHEIN风格的分类数据
@@ -146,7 +171,8 @@ const Header: React.FC = () => {
     { name: '热销推荐', path: '/products?sort=sales' },
     { name: '限时优惠', path: '/products?discount=true' },
     { name: '精品收藏', path: '/products?filter=精品' },
-    { name: '礼品定制', path: '/products?filter=礼品' }
+    { name: '礼品定制', path: '/products?filter=礼品' },
+    { name: '回购中心', path: '/buyback' }
   ];
 
   const quickFilters = [
@@ -159,7 +185,7 @@ const Header: React.FC = () => {
       <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-center py-2 text-sm">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-center space-x-4">
           <Gift className="h-4 w-4" />
-          <span>新用户专享：首单立减100元 | 全场包邮 | 7天无理由退换</span>
+          <span>{locale === 'zh' ? '新用户专享：首单立减100元 | 全场包邮 | 7天无理由退换' : 'New users: ¥100 off first order | Free shipping | 7-day returns'}</span>
           <Truck className="h-4 w-4" />
         </div>
       </div>
@@ -168,9 +194,34 @@ const Header: React.FC = () => {
         {/* 主导航栏 */}
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <h1 className="text-2xl font-bold text-gradient">玉石雅韵</h1>
+          <Link to="/" className="flex items-center gap-2">
+            <img
+              src={headerLogoSrc}
+              alt="Guaranteed antiques logo"
+              className="object-contain h-auto max-w-full"
+              loading="lazy"
+              decoding="async"
+              onLoad={(e) => {
+                const img = e.currentTarget as HTMLImageElement;
+                const halfW = Math.max(1, Math.round(img.naturalWidth / 2));
+                img.style.width = `${halfW}px`;
+                img.style.height = 'auto';
+              }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/guaranteed-antiques-logo.png'; }}
+            />
+            <h1 className="text-xl font-semibold text-gradient">Guaranteed antiques</h1>
           </Link>
+
+          {/* 上传 LOGO */}
+          <div className="hidden md:flex items-center gap-3">
+            <input
+              id="logoUpload"
+              type="file"
+              accept="image/*"
+              onChange={handleLogoUpload}
+              className="hidden"
+            />
+          </div>
 
           {/* 搜索框 */}
           <div className="hidden md:flex flex-1 max-w-2xl mx-8">
@@ -355,15 +406,6 @@ const Header: React.FC = () => {
                     >
                       <Settings className="h-4 w-4 mr-3" />
                       账户设置
-                    </Link>
-                    {/* 开发工具入口 */}
-                    <Link
-                      to="/link-test"
-                      onClick={() => setShowUserMenu(false)}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors"
-                    >
-                      <Grid3X3 className="h-4 w-4 mr-3" />
-                      链接测试工具
                     </Link>
                     <div className="border-t border-gray-100 my-1"></div>
                     <button
@@ -599,6 +641,13 @@ const Header: React.FC = () => {
                     )}
                   </div>
                 ))}
+                <Link
+                  to="/buyback"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors font-medium"
+                >
+                  回购中心
+                </Link>
               </nav>
 
               {/* 移动端快速链接 */}
