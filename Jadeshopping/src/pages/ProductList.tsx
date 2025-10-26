@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal, Star } from 'lucide-react';
+import { Search, SlidersHorizontal, Star, Heart, ShoppingCart } from 'lucide-react';
 import { getProductsData, getCategoriesData } from '../data/mockData';
 import { Product, Category } from '../types';
+import { useFavoritesStore } from '../store/useFavoritesStore';
+import { useCartStore } from '../store/useCartStore';
 
 const ProductList: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,6 +14,10 @@ const ProductList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
+
+  // 收藏和购物车功能
+  const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+  const { addToCart } = useCartStore();
 
   useEffect(() => {
     // 从URL参数获取初始值
@@ -81,6 +87,46 @@ const ProductList: React.FC = () => {
         className={`h-4 w-4 ${i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
       />
     ));
+  };
+
+  // 处理收藏功能
+  const handleToggleFavorite = (product: Product, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0]
+      });
+    }
+  };
+
+  // 处理添加到购物车
+  const handleAddToCart = (product: Product, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    addToCart(product, 1);
+    
+    // 显示成功提示
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.textContent = '商品已添加到购物车';
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 300);
+    }, 2000);
   };
 
   return (
@@ -189,7 +235,7 @@ const ProductList: React.FC = () => {
                     to={`/product/${product.id}`}
                     className="card-hover group"
                   >
-                    <div className="aspect-square overflow-hidden">
+                    <div className="aspect-square overflow-hidden relative group/image">
                       <img
                         src={product.images[0]}
                         alt={product.name}
@@ -198,6 +244,44 @@ const ProductList: React.FC = () => {
                           (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center';
                         }}
                       />
+                      
+                      {/* 悬浮按钮组 */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300">
+                        {/* 收藏按钮 */}
+                        <button
+                          onClick={(e) => handleToggleFavorite(product, e)}
+                          className={`
+                            w-8 h-8 rounded-full flex items-center justify-center
+                            backdrop-blur-sm border border-white/20 shadow-lg
+                            transition-all duration-300 hover:scale-110 active:scale-95
+                            ${isFavorite(product.id) 
+                              ? 'bg-red-500 text-white hover:bg-red-600' 
+                              : 'bg-white/80 text-gray-600 hover:bg-white hover:text-red-500'
+                            }
+                          `}
+                          title={isFavorite(product.id) ? '取消收藏' : '添加收藏'}
+                        >
+                          <Heart 
+                            className={`w-4 h-4 transition-all duration-200 ${
+                              isFavorite(product.id) ? 'fill-current' : ''
+                            }`} 
+                          />
+                        </button>
+                        
+                        {/* 购物车按钮 */}
+                        <button
+                          onClick={(e) => handleAddToCart(product, e)}
+                          className="
+                            w-8 h-8 rounded-full flex items-center justify-center
+                            bg-white/80 text-gray-600 backdrop-blur-sm border border-white/20 shadow-lg
+                            transition-all duration-300 hover:scale-110 active:scale-95
+                            hover:bg-primary-500 hover:text-white hover:border-primary-500
+                          "
+                          title="添加到购物车"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                     <div className="p-4">
                       <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-primary-500 transition-colors">

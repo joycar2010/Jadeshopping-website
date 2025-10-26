@@ -170,7 +170,20 @@ const Orders: React.FC = () => {
         { id: 'coupons', title: '我的优惠券', link: '/coupons' },
         { id: 'points', title: '我的积分', link: '/points' },
         { id: 'wallet', title: '我的钱包', link: '/wallet' },
-        { id: 'gift-cards', title: '礼品卡', link: '/settings' }
+-        { id: 'gift-cards', title: '礼品卡', link: '/settings' }
++        { id: 'gift-cards', title: '礼品卡', link: '/gift-card' }
+      ]
+    },
+    {
+      id: 'favorites',
+      title: 'My Favorites',
+      icon: Heart,
+      items: [
+        { id: 'wishlist', title: '心愿单', link: '/favorites' },
+-        { id: 'recently-viewed', title: '最近浏览', link: '/settings' },
+-        { id: 'following', title: '关注', link: '/settings' }
++        { id: 'recently-viewed', title: '最近浏览', link: '/recently-viewed' },
++        { id: 'following', title: '关注', link: '/follow' }
       ]
     },
     {

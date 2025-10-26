@@ -94,7 +94,18 @@ const Favorites: React.FC = () => {
         { name: 'My Coupons', nameCn: '我的优惠券', path: '/coupons', icon: Gift },
         { name: 'My Points', nameCn: '我的积分', path: '/points', icon: Star },
         { name: 'My Wallet', nameCn: '我的钱包', path: '/wallet', icon: Wallet },
-        { name: 'Gift Cards', nameCn: '礼品卡', path: '/settings', icon: Gift }
+-        { name: 'Gift Cards', nameCn: '礼品卡', path: '/settings', icon: Gift }
++        { name: 'Gift Cards', nameCn: '礼品卡', path: '/gift-card', icon: Gift }
+      ]
+    },
+    {
+      title: 'Other Services',
+      titleCn: '其他服务',
+      items: [
+-
+-        { name: 'Survey Center', nameCn: '调查中心', path: '/service', icon: FileText }
++
++        { name: 'Survey Center', nameCn: '调查中心', path: '/survey', icon: FileText }
       ]
     },
     {

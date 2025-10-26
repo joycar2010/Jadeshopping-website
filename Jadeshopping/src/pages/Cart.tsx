@@ -388,6 +388,118 @@ const Cart: React.FC = () => {
                   立即结算
                 </Link>
 
+                {/* We Accept 支付方式板块 */}
+                <div className="mt-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">We Accept</h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {/* VISA */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="px-3 py-1 rounded bg-white">
+                          <span className="text-[#1a1f71] font-extrabold text-xl tracking-widest">VISA</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mastercard */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="relative w-20 h-10">
+                        <div className="absolute left-2 top-1 w-8 h-8 rounded-full bg-[#EB001B] opacity-90"></div>
+                        <div className="absolute left-6 top-1 w-8 h-8 rounded-full bg-[#F79E1B] opacity-90"></div>
+                      </div>
+                    </div>
+
+                    {/* Maestro */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="relative w-20 h-10">
+                        <div className="absolute left-2 top-1 w-8 h-8 rounded-full bg-[#EB001B]"></div>
+                        <div className="absolute left-6 top-1 w-8 h-8 rounded-full bg-[#00A2E8]"></div>
+                      </div>
+                    </div>
+
+                    {/* American Express */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="bg-[#2E77BB] text-white font-bold rounded px-3 py-1 text-sm">AMERICAN EXPRESS</div>
+                    </div>
+
+                    {/* Discover */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-black font-bold">DISCOVER</span>
+                        <div className="w-6 h-6 rounded-full bg-[#F7941D]"></div>
+                      </div>
+                    </div>
+
+                    {/* Diners Club */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-[#3A75C4] text-white flex items-center justify-center font-bold">DC</div>
+                        <span className="text-gray-800 font-medium">Diners Club</span>
+                      </div>
+                    </div>
+
+                    {/* PayPal */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <span className="text-[#003087] font-bold text-lg">PayPal</span>
+                    </div>
+
+                    {/* Afterpay */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="px-3 py-1 rounded bg-[#C6F5D2]">
+                        <span className="text-[#071B0C] font-semibold">Afterpay</span>
+                      </div>
+                    </div>
+
+                    {/* Klarna */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="px-3 py-1 rounded bg-[#FFB3C7]">
+                        <span className="text-[#1A1A1A] font-semibold">Klarna</span>
+                      </div>
+                    </div>
+
+                    {/* Apple Pay */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="px-3 py-1 rounded border border-gray-300">
+                        <span className="text-black font-bold"> Pay</span>
+                      </div>
+                    </div>
+
+                    {/* Google Pay */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="px-3 py-1 rounded border border-gray-300">
+                        <span className="text-gray-900 font-bold">G Pay</span>
+                      </div>
+                    </div>
+
+                    {/* Zip */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="px-3 py-1 rounded bg-white border text-gray-800 font-bold">zip</div>
+                    </div>
+
+                    {/* Venmo */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="px-3 py-1 rounded bg-[#3D95CE]">
+                        <span className="text-white font-bold">venmo</span>
+                      </div>
+                    </div>
+
+                    {/* Cash App */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="px-3 py-1 rounded bg-[#00C244]">
+                        <span className="text-white font-black text-xl">$</span>
+                      </div>
+                    </div>
+
+                    {/* Affirm */}
+                    <div className="flex items-center justify-center bg-white border rounded-lg shadow-sm h-16 p-2 hover:shadow-md hover:scale-[1.02] transition-all">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 rounded-t-full border-4 border-b-0 border-[#1E2A5A]"></div>
+                        <span className="text-[#1E2A5A] font-bold">affirm</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
 
               </div>
             </div>

@@ -127,7 +127,8 @@ const Address: React.FC = () => {
         { id: 'coupons', title: '我的优惠券', link: '/coupons' },
         { id: 'points', title: '我的积分', link: '/points' },
         { id: 'wallet', title: '我的钱包', link: '/wallet' },
-        { id: 'gift-cards', title: '礼品卡', link: '/settings' }
+-        { id: 'gift-cards', title: '礼品卡', link: '/settings' }
++        { id: 'gift-cards', title: '礼品卡', link: '/gift-card' }
       ]
     },
     {
@@ -149,8 +150,10 @@ const Address: React.FC = () => {
       icon: Heart,
       items: [
         { id: 'wishlist', title: '心愿单', link: '/favorites' },
-        { id: 'recently-viewed', title: '最近浏览', link: '/settings' },
-        { id: 'following', title: '关注', link: '/settings' }
+-        { id: 'recently-viewed', title: '最近浏览', link: '/settings' },
+-        { id: 'following', title: '关注', link: '/settings' }
++        { id: 'recently-viewed', title: '最近浏览', link: '/recently-viewed' },
++        { id: 'following', title: '关注', link: '/follow' }
       ]
     },
     {
@@ -169,9 +172,12 @@ const Address: React.FC = () => {
       title: 'Other Services',
       icon: Gift,
       items: [
-
-        { id: 'survey', title: '调查中心', link: '/settings' },
-        { id: 'feedback', title: '意见反馈', link: '/settings' }
+-
+-        { id: 'survey', title: '调查中心', link: '/settings' },
+-        { id: 'feedback', title: '意见反馈', link: '/settings' }
++
++        { id: 'survey', title: '调查中心', link: '/survey' },
++        { id: 'feedback', title: '意见反馈', link: '/feedback' }
       ]
     },
     {
