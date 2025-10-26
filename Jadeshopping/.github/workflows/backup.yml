@@ -97,6 +97,21 @@ jobs:
           .vercelignore \
           .gitignore
           
+    - name: 压缩页面目录
+      run: |
+        if [ -d "src/pages" ]; then
+          tar -czf backup-pages-$(date +%Y%m%d-%H%M%S).tar.gz src/pages/
+        else
+          echo "src/pages 不存在，跳过页面备份"
+        fi
+        
+    - name: 生成页面索引快照
+      run: |
+        if [ -d "src/pages" ]; then
+          echo -e "\n## 页面目录快照 ($(date))" >> backup-info/backup-info.md
+          tree -a src/pages >> backup-info/backup-info.md || ls -la src/pages >> backup-info/backup-info.md
+        fi
+        
     - name: 创建备份分支
       run: |
         BACKUP_BRANCH="backup-$(date +%Y-%m-%d)"
