@@ -71,7 +71,7 @@ const Favorites: React.FC = () => {
   };
 
   const formatPrice = (price: number) => {
-    return `¥${price.toLocaleString()}`;
+    return `$${price.toFixed(2)}`;
   };
 
   // 左侧导航菜单数据

@@ -239,7 +239,7 @@ const Buyback: React.FC = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">原购买价 (¥)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">原购买价 ($)</label>
                 <input type="number" min={0} value={purchasePrice ?? ''} onChange={(e) => setPurchasePrice(e.target.value ? Number(e.target.value) : '')} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="例如 12800" />
               </div>
               <div>
@@ -299,7 +299,7 @@ const Buyback: React.FC = () => {
                   <span className="font-medium">预估回购价</span>
                 </div>
                 {estimate && withinOneYear ? (
-                  <p className="text-2xl font-bold text-gray-900">¥{estimate.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">${estimate.toFixed(2)}</p>
                 ) : (
                   <p className="text-sm text-gray-600">需完成资质核验后给出正式报价；超期商品建议选择寄售服务。</p>
                 )}

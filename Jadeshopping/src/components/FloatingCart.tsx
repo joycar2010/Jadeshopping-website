@@ -77,28 +77,57 @@ const FloatingCart: React.FC = () => {
                             {item.name}
                           </h3>
                           <p className="text-sm text-red-600 font-semibold">
-                            ¥{item.price.toLocaleString()}
+                            ${item.price.toFixed(2)}
                           </p>
                           
                           {/* 数量控制 */}
                           <div className="flex items-center space-x-2 mt-2">
                             <button
-                              onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
-                              className="p-1 hover:bg-gray-200 rounded transition-colors"
+                              onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
+                              className="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+                              disabled={item.quantity <= 1}
                             >
                               <Minus className="h-3 w-3" />
                             </button>
-                            <span className="text-sm font-medium min-w-[2rem] text-center">
-                              {item.quantity}
-                            </span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={Math.min(999, item.stock ?? 999)}
+                              step={1}
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const next = Number(e.target.value);
+                                if (!Number.isNaN(next)) {
+                                  const max = Math.min(999, item.stock ?? 999);
+                                  updateQuantity(item.productId, Math.max(1, Math.min(next, max)));
+                                }
+                              }}
+                              onKeyDown={(e) => { if (["e","E","+","-","."," "].includes(e.key)) e.preventDefault(); }}
+                              onBlur={(e) => {
+                                const next = Number(e.target.value);
+                                const max = Math.min(999, item.stock ?? 999);
+                                const clamped = Math.max(1, Math.min(Number.isNaN(next) ? item.quantity : next, max));
+                                if (clamped !== item.quantity) {
+                                  updateQuantity(item.productId, clamped);
+                                }
+                              }}
+                              className="w-12 text-center border border-gray-300 rounded px-2 py-1 text-xs"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                            />
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="p-1 hover:bg-gray-200 rounded transition-colors"
+                              onClick={() => {
+                                const max = Math.min(999, item.stock ?? 999);
+                                updateQuantity(item.productId, Math.min(item.quantity + 1, max));
+                              }}
+                              className="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+                              disabled={item.quantity >= Math.min(999, item.stock ?? 999)}
                             >
                               <Plus className="h-3 w-3" />
                             </button>
+                            <span className="text-[10px] text-gray-500">Max: {Math.min(999, item.stock ?? 999)}</span>
                             <button
-                              onClick={() => removeItem(item.id)}
+                              onClick={() => removeItem(item.productId)}
                               className="p-1 hover:bg-red-100 text-red-500 rounded transition-colors ml-2"
                             >
                               <Trash2 className="h-3 w-3" />
@@ -117,7 +146,7 @@ const FloatingCart: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold text-gray-900">总计:</span>
                     <span className="text-xl font-bold text-red-600">
-                      ¥{totalPrice.toLocaleString()}
+                      ${totalPrice.toFixed(2)}
                     </span>
                   </div>
                   

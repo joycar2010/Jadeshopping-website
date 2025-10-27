@@ -596,10 +596,10 @@ const Home: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col">
                       <span className="text-lg font-bold text-red-600">
-                        ¥{product.price.toLocaleString()}
+                        ${product.price.toFixed(2)}
                       </span>
                       <span className="text-xs text-gray-500 line-through">
-                        ¥{product.originalPrice.toLocaleString()}
+                        ${product.originalPrice.toFixed(2)}
                       </span>
                     </div>
                     <button

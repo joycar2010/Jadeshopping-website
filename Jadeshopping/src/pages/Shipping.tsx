@@ -17,7 +17,7 @@ const Shipping: React.FC = () => {
       icon: Clock,
       name: '加急配送',
       time: '1-2个工作日',
-      price: '¥20',
+      price: '$20.00',
       description: '快速送达，适合急需商品',
       features: ['优先处理', '专人配送', '实时跟踪', '当日发货']
     },
@@ -25,7 +25,7 @@ const Shipping: React.FC = () => {
       icon: Shield,
       name: '贵重物品专送',
       time: '2-3个工作日',
-      price: '¥50',
+      price: '$50.00',
       description: '高价值商品专用，安全保障',
       features: ['专业包装', '保价运输', '专人护送', '签收拍照']
     }

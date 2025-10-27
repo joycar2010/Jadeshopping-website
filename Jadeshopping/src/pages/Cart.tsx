@@ -12,7 +12,13 @@ const Cart: React.FC = () => {
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
 
   const formatPrice = (price: number) => {
-    return `¥${price.toLocaleString()}`;
+    return `$${price.toFixed(2)}`;
+  };
+
+  // 数量范围约束（最小1，最大999，受库存约束）
+  const clampQty = (q: number, stock?: number) => {
+    const max = Math.min(999, stock ?? 999);
+    return Math.max(1, Math.min(q, max));
   };
 
   const handleQuantityChange = (id: string, newQuantity: number) => {
@@ -25,7 +31,8 @@ const Cart: React.FC = () => {
 
   // 计算优惠券节省金额
   const couponSavings = selectedCoupon ? 58.2 : 0;
-  const finalTotal = getTotalPrice() - couponSavings;
+  const subtotal = getTotalPrice();
+  const finalTotal = Math.max(0, subtotal - couponSavings);
 
   // 推荐商品数据
   const recommendedItems = [
@@ -161,7 +168,7 @@ const Cart: React.FC = () => {
                   <Gift className="h-6 w-6 text-red-500" />
                   <div>
                     <p className="font-semibold text-red-700">
-                      立即使用优惠券可节省 ¥58.2
+                      立即使用优惠券可节省 $58.20
                     </p>
                     <p className="text-sm text-red-600">限时优惠，不要错过！</p>
                   </div>
@@ -236,23 +243,47 @@ const Cart: React.FC = () => {
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center border border-gray-300 rounded-lg">
                           <button
-                            onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                            className="p-2 hover:bg-gray-50 transition-colors"
+                            onClick={() => updateQuantity(item.productId, clampQty(item.quantity - 1, item.stock))}
+                            disabled={item.quantity <= 1}
+                            className="p-2 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Minus className="h-4 w-4" />
                           </button>
-                          <span className="px-4 py-2 font-medium min-w-[60px] text-center">
-                            {item.quantity}
-                          </span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={Math.min(999, item.stock ?? 999)}
+                            step={1}
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const next = Number(e.target.value);
+                              if (!Number.isNaN(next)) {
+                                updateQuantity(item.productId, clampQty(next, item.stock));
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (["e","E","+","-","."," "].includes(e.key)) e.preventDefault();
+                            }}
+                            onBlur={(e) => {
+                              const next = Number(e.target.value);
+                              const clamped = clampQty(Number.isNaN(next) ? item.quantity : next, item.stock);
+                              if (clamped !== item.quantity) {
+                                updateQuantity(item.productId, clamped);
+                              }
+                            }}
+                            className="px-4 py-2 font-medium min-w-[60px] text-center border-l border-r border-gray-300"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                          />
                           <button
-                            onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                            disabled={item.quantity >= item.stock}
+                            onClick={() => updateQuantity(item.productId, clampQty(item.quantity + 1, item.stock))}
+                            disabled={item.quantity >= Math.min(999, item.stock ?? 999)}
                             className="p-2 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Plus className="h-4 w-4" />
                           </button>
                         </div>
-
+                        <span className="text-[10px] text-gray-500">Max: {Math.min(999, item.stock ?? 999)}</span>
                         {/* 小计 */}
                         <div className="text-right min-w-[100px]">
                           <div className="text-lg font-bold text-black">

@@ -246,8 +246,8 @@ const Orders: React.FC = () => {
     return statusMap[status];
   };
 
-  // 格式化价格
-  const formatPrice = (price: number) => `¥${price.toFixed(2)}`;
+  // 格式化价格（美元）
+  const formatPrice = (price: number) => `$${price.toFixed(2)}`;
 
   // 格式化日期
   const formatDate = (dateString: string) => {

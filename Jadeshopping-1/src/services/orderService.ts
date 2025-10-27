@@ -621,3 +621,9 @@ export class OrderService {
     return statusMap[status] || { label: status, color: 'gray', description: 'Unknown status' };
   }
 }
+
+// 创建并导出单例实例
+export const orderService = new OrderService();
+
+// 默认导出类
+export default OrderService;

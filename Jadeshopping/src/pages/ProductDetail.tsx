@@ -42,7 +42,7 @@ const ProductDetail: React.FC = () => {
   };
 
   const formatPrice = (price: number) => {
-    return `¥${price.toLocaleString()}`;
+    return `$${price.toFixed(2)}`;
   };
 
   const renderStars = (rating: number) => {

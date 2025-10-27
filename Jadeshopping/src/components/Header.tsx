@@ -185,7 +185,7 @@ const Header: React.FC = () => {
       <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-center py-2 text-sm">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-center space-x-4">
           <Gift className="h-4 w-4" />
-          <span>{locale === 'zh' ? '新用户专享：首单立减100元 | 全场包邮 | 7天无理由退换' : 'New users: ¥100 off first order | Free shipping | 7-day returns'}</span>
+          <span>{locale === 'zh' ? '新用户专享：首单立减$100 | 全场包邮 | 7天无理由退换' : 'New users: $100 off first order | Free shipping | 7-day returns'}</span>
           <Truck className="h-4 w-4" />
         </div>
       </div>
@@ -304,7 +304,7 @@ const Header: React.FC = () => {
                               <h4 className="text-sm font-medium text-gray-900 truncate">{item.name}</h4>
                               <div className="flex items-center justify-between mt-1">
                                 <span className="text-xs text-gray-500">数量: {item.quantity}</span>
-                                <span className="text-sm font-semibold text-red-600">¥{(item.price * item.quantity).toFixed(2)}</span>
+                                <span className="text-sm font-semibold text-red-600">${(item.price * item.quantity).toFixed(2)}</span>
                               </div>
                             </div>
                           </div>
@@ -320,7 +320,7 @@ const Header: React.FC = () => {
                       <div className="border-t border-gray-100 pt-3 mb-4">
                         <div className="flex items-center justify-between">
                           <span className="text-base font-medium text-gray-900">总计:</span>
-                          <span className="text-lg font-bold text-red-600">¥{totalAmount.toFixed(2)}</span>
+                          <span className="text-lg font-bold text-red-600">${totalAmount.toFixed(2)}</span>
                         </div>
                       </div>
 
