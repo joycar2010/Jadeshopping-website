@@ -1,0 +1,69 @@
+name: 备份状态监控
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # 每天 03:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  monitor:
+    name: 检查最近备份状态
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检查最近一次“自动备份”结果
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo
+
+            // 获取工作流列表并找到名称为“自动备份”的 workflow
+            const workflows = await github.rest.actions.listRepoWorkflows({ owner, repo })
+            const wf = workflows.data.workflows.find(w => w.name === '自动备份')
+            if (!wf) {
+              core.setFailed('未找到名为“自动备份”的工作流。')
+              return
+            }
+
+            // 获取最近 20 次运行
+            const runs = await github.rest.actions.listWorkflowRuns({ owner, repo, workflow_id: wf.id, per_page: 20 })
+            if (!runs.data.workflow_runs.length) {
+              core.setFailed('未发现自动备份的任何运行记录。')
+              return
+            }
+
+            // 查找 36 小时内最近一次运行
+            const cutoff = Date.now() - 36 * 60 * 60 * 1000
+            const recent = runs.data.workflow_runs.find(r => new Date(r.created_at).getTime() >= cutoff)
+            if (!recent) {
+              core.setFailed('36 小时内未检测到自动备份运行。')
+            } else if (recent.conclusion !== 'success') {
+              core.setFailed(`最近一次备份未成功：status=${recent.status}, conclusion=${recent.conclusion}`)
+            } else {
+              core.info('最近一次备份成功。')
+            }
+
+      - name: 备份异常时创建/更新告警 Issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            const title = 'Backup Alert: 备份异常告警'
+            const body = `自动备份检测到异常。\n\n- 仓库: ${owner}/${repo}\n- 工作流: 自动备份\n- 时间: ${new Date().toISOString()}\n\n请前往 Actions 日志排查。`
+            const labels = ['backup-alert','bug','high-priority']
+
+            // 查找同名未关闭 Issue
+            const existing = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${owner}/${repo} is:issue in:title \"${title}\" state:open`
+            })
+            if (existing.data.items && existing.data.items.length > 0) {
+              const issue = existing.data.items[0]
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body })
+            } else {
+              await github.rest.issues.create({ owner, repo, title, body, labels })
+            }

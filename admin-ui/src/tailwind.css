@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 最小入口文件：如需使用自定义样式，可在此扩展 */

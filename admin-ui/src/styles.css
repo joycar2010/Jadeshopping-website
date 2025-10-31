@@ -1,0 +1,61 @@
+html, body, #root { height: 100%; }
+body { margin: 0; }
+
+/* --------------------------------------------
+   Vertical Center Utilities (Global)
+   用于在不使用 position: fixed/sticky 的前提下实现垂直居中。
+   使用说明：
+   1) 首选 .v-center-viewport：在可视高度内垂直居中（常用于空状态/按钮区）。
+      - 若页面存在固定顶部栏（如 Admin AppBar=64px），可叠加 .v-center-offset-64。
+   2) 备用 .v-center-abs：在最近的定位祖先内绝对定位+transform 垂直居中。
+      - 父容器需设置 position: relative。
+   -------------------------------------------- */
+
+:root {
+  /* 可按需覆盖：用于扣除顶部已占高度（如固定 AppBar） */
+  --v-center-offset: 0px;
+}
+
+/* 视口内 Flex 垂直居中（不固定到顶部，随页面滚动） */
+.v-center-viewport {
+  min-height: calc(100vh - var(--v-center-offset));
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  /* 不强制水平居中，保持布局自由；如需水平居中可叠加 justify-center 类或下行解注释 */
+  /* justify-content: center; */
+}
+
+/* 绝对定位 + transform 垂直居中（父容器需 position: relative） */
+.v-center-abs {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 常用顶部偏移工具（Admin AppBar 默认 64px；部分小屏可能 56px） */
+.v-center-offset-64 { --v-center-offset: 64px; }
+.v-center-offset-56 { --v-center-offset: 56px; }
+
+/* 响应式保障：在极矮屏幕下，保证内容区有最小可用高度 */
+@media (max-height: 480px) {
+  .v-center-viewport {
+    min-height: 440px;
+  }
+}
+
+/* 可选：当容器内仅有单行按钮组时，可启用行内居中对齐 */
+.v-center-row {
+  display: flex;
+  align-items: center;
+}
+
+/* --------------------------------------------
+   AlignY Utilities
+   通过 CSS 变量实现位移，不影响布局流与交互层级
+   使用：在需要被位移的元素上添加 .aligny-adjust
+   并由 hook 设置 --aligny-dy 的值
+   -------------------------------------------- */
+.aligny-adjust {
+  will-change: transform;
+  transform: translateY(var(--aligny-dy, 0px));
+}

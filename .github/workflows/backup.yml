@@ -1,0 +1,152 @@
+name: 自动备份
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 每天 02:00 UTC
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  actions: read
+  issues: write
+
+env:
+  SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+jobs:
+  backup:
+    name: 生成并推送备份
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare timestamp
+        run: |
+          echo "DATE=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+          echo "DATE_SHORT=$(date +%F)" >> $GITHUB_ENV
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci || npm install
+          else
+            npm install
+          fi
+
+      - name: Build (if present)
+        run: |
+          npm run build --if-present || true
+
+      - name: Pack source archive
+        run: |
+          tar \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='dist' \
+            --exclude='build' \
+            -czf backup-source-${{ env.DATE }}.tar.gz .
+
+      - name: Pack build artifacts (if dist exists)
+        run: |
+          if [ -d dist ]; then
+            tar -czf backup-build-${{ env.DATE }}.tar.gz dist
+          fi
+
+      - name: Pack dependency & config snapshot
+        run: |
+          FILES=""
+          for f in package.json package-lock.json yarn.lock pnpm-lock.yaml tsconfig.json tsconfig.*.json vite.config.* tailwind.config.* postcss.config.* eslint.* .eslintrc* vercel.json .vercelignore .gitignore; do
+            if ls $f >/dev/null 2>&1; then FILES="$FILES $f"; fi
+          done
+          if [ -n "$FILES" ]; then
+            tar -czf backup-deps-${{ env.DATE }}.tar.gz $FILES
+          fi
+
+      - name: Generate backup info
+        run: |
+          mkdir -p backup-info
+          {
+            echo "# 备份信息"
+            echo "- 时间: $(date -u "+%Y-%m-%d %H:%M:%S UTC")"
+            echo "- 运行ID: $GITHUB_RUN_ID"
+            echo "- 仓库: $GITHUB_REPOSITORY"
+            echo "- 提交: $(git rev-parse HEAD)"
+            echo "- 分支/标签: $GITHUB_REF"
+            echo "- Node: $(node -v)"
+            echo "- npm: $(npm -v)"
+            echo "\n## 构建产物"
+            if [ -d dist ]; then
+              echo "存在 dist/ 目录"
+              echo "\n### dist 清单 (前 200 条)"; find dist -type f | head -n 200
+            else
+              echo "未生成 dist/"
+            fi
+          } > backup-info/backup-info.md
+
+      - name: Install pg client (for DB dump)
+        if: ${{ env.SUPABASE_DB_URL != '' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Dump database (optional)
+        if: ${{ env.SUPABASE_DB_URL != '' }}
+        run: |
+          mkdir -p db-backup
+          echo "Starting pg_dump to db-backup/backup-db-${{ env.DATE }}.sql.gz"
+          pg_dump \
+            --dbname="$SUPABASE_DB_URL" \
+            --no-owner \
+            --format=plain \
+            --encoding=UTF8 \
+            --schema=public \
+            | gzip > db-backup/backup-db-${{ env.DATE }}.sql.gz
+
+      - name: Create and push backup branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "backup-${{ env.DATE_SHORT }}"
+          git add -f backup-*.tar.gz backup-info || true
+          if [ -d db-backup ]; then git add -f db-backup; fi
+          if git diff --cached --quiet; then
+            echo "No backup files to commit. Skipping commit."
+          else
+            git commit -m "chore(backup): backup ${{ env.DATE }}"
+            git push origin "backup-${{ env.DATE_SHORT }}" --force
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ env.DATE }}
+          path: |
+            backup-*.tar.gz
+            backup-info/**
+            db-backup/**
+          if-no-files-found: warn
+
+      - name: Create release for tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: backup-${{ github.ref_name }}-${{ env.DATE }}
+          tag_name: ${{ github.ref_name }}
+          files: |
+            backup-*.tar.gz
+            db-backup/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
